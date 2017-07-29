@@ -3,12 +3,12 @@ using System.ComponentModel;
 using System.Text;
 using static FastWin32.NativeMethods;
 
-namespace FastWin32
+namespace FastWin32.Diagnostics
 {
     /// <summary>
     /// 模块
     /// </summary>
-    public static class Module
+    public static class ModuleX
     {
         #region 打开进程
         /// <summary>
@@ -65,7 +65,7 @@ namespace FastWin32
             for (int i = 0; i < hModules.Length; i++)
             {
                 //遍历所有模块名
-                if (GetModuleBaseName(hProcess, hModules[i], baseName, MAX_MODULE_NAME32) == 0)
+                if (!GetModuleBaseName(hProcess, hModules[i], baseName, MAX_MODULE_NAME32))
                     //获取模块名失败
                     throw new Win32Exception();
                 if (baseName.ToString().ToLower() == lowerName)

@@ -1,4 +1,5 @@
 ﻿using System;
+using FastWin32.Diagnostics;
 using FastWin32.Memory;
 using static FastWin32.NativeMethods;
 
@@ -24,7 +25,7 @@ namespace FastWin32.Control
             IntPtr remoteAddr;
 
             structure = default(TStruct);
-            processId = Process.GetProcessIdByHWnd(hWnd);
+            processId = ProcessX.GetProcessIdByHWnd(hWnd);
             //获取控件所在进程ID
             hProcess = Memory.Util.OpenProcessRW(processId);
             //打开进程
@@ -71,7 +72,7 @@ namespace FastWin32.Control
             IntPtr hProcess;
             IntPtr remoteAddr;
 
-            processId = Process.GetProcessIdByHWnd(hWnd);
+            processId = ProcessX.GetProcessIdByHWnd(hWnd);
             //获取控件所在进程ID
             hProcess = Memory.Util.OpenProcessRW(processId);
             //打开进程

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using FastWin32.Diagnostics;
 using static FastWin32.Memory.MemoryRW;
 using static FastWin32.Memory.Util;
 using static FastWin32.NativeMethods;
@@ -131,7 +132,7 @@ namespace FastWin32.Memory
             uint size;
             PagePool result;
 
-            if (Process.Is64ProcessInternal(hProcess))
+            if (ProcessX.Is64ProcessInternal(hProcess))
             {
                 //64位进程
                 startAddr = 0x0;

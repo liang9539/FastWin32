@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FastWin32.Asm
 {
@@ -23,18 +19,26 @@ namespace FastWin32.Asm
         /// <param name="bytes">机器码</param>
         public static void _asm(byte[] bytes)
         {
-            //Assembler.BytesToOpcodes()
+            if (bytes == null)
+                throw new ArgumentNullException();
+            if (bytes.Length == 0)
+                throw new ArgumentOutOfRangeException();
+
+            AsmLib.GetDelegateForAsm<Action>(bytes)();
         }
 
         /// <summary>
         /// 输入汇编指令并立即执行
         /// </summary>
         /// <param name="opcodes">汇编指令</param>
-        public static void _asm(string opcodes)
+        public static void _asm(string[] opcodes)
         {
+            if (opcodes == null)
+                throw new ArgumentNullException();
+            if (opcodes.Length == 0)
+                throw new ArgumentOutOfRangeException();
 
+            AsmLib.GetDelegateForAsm<Action>(opcodes)();
         }
-
-        public static
     }
 }

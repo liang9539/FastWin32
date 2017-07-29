@@ -1,6 +1,6 @@
 ﻿//using System;
 
-//namespace FastWin32
+//namespace FastWin32.Diagnostics
 //{
 //    /// <summary>
 //    /// 桌面

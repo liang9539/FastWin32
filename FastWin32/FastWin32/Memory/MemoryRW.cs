@@ -1,4 +1,5 @@
 ﻿using System;
+using FastWin32.Diagnostics;
 using static FastWin32.Memory.Util;
 using static FastWin32.NativeMethods;
 
@@ -21,7 +22,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         internal static unsafe bool GetBaseAddrInternal(IntPtr hProcess, bool first, string moduleName, EnumModulesFilterFlag flag, out IntPtr value)
         {
-            return Module.GetHandleInternal(hProcess, first, moduleName, flag, out value);
+            return ModuleX.GetHandleInternal(hProcess, first, moduleName, flag, out value);
         }
 
         /// <summary>
@@ -31,7 +32,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static IntPtr GetBaseAddr(uint processId)
         {
-            return Module.GetHandle(processId);
+            return ModuleX.GetHandle(processId);
         }
 
         /// <summary>
@@ -42,7 +43,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static IntPtr GetBaseAddr(uint processId, string moduleName)
         {
-            return Module.GetHandle(processId, moduleName);
+            return ModuleX.GetHandle(processId, moduleName);
         }
         #endregion
 

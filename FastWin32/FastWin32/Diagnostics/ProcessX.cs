@@ -2,12 +2,12 @@
 using System.ComponentModel;
 using static FastWin32.NativeMethods;
 
-namespace FastWin32
+namespace FastWin32.Diagnostics
 {
     /// <summary>
     /// 进程
     /// </summary>
-    public static class Process
+    public static class ProcessX
     {
         /// <summary>
         /// 通过窗口句柄获取进程ID

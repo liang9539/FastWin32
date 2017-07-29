@@ -44,6 +44,12 @@
     <AssemblyOriginatorKeyFile>FastWin32.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="FastWin32\Diagnostics\DInvoker.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DInvoker.resx</DependentUpon>
+    </Compile>
+    <Compile Include="FastWin32\Diagnostics\Dll.cs" />
     <Compile Include="FastWin32\Asm\AsmLib.cs" />
     <Compile Include="FastWin32\Asm\AsmCompileException.cs" />
     <Compile Include="FastWin32\Asm\InlineAsm.cs" />
@@ -57,12 +63,14 @@
     <Compile Include="FastWin32\Control\Win32Control.cs" />
     <Compile Include="FastWin32\Control\ExtendedListViewStyles.cs" />
     <Compile Include="FastWin32\Control\SysListView32.cs" />
-    <Compile Include="FastWin32\Desktop.cs" />
+    <Compile Include="FastWin32\Diagnostics\Desktop.cs" />
+    <Compile Include="FastWin32\Hook\HookAPI.cs" />
+    <Compile Include="FastWin32\Hook\IHook.cs" />
     <Compile Include="FastWin32\Memory\MemoryScan.cs" />
     <Compile Include="FastWin32\Memory\PagePool.cs" />
     <Compile Include="FastWin32\Memory\ScanResult.cs" />
     <Compile Include="FastWin32\Memory\Tristate.cs" />
-    <Compile Include="FastWin32\Process.cs" />
+    <Compile Include="FastWin32\Diagnostics\ProcessX.cs" />
     <Compile Include="FastWin32\Control\IWin32Struct.cs" />
     <Compile Include="FastWin32\Control\Point.cs" />
     <Compile Include="FastWin32\Macro\CommCtrl.cs" />
@@ -74,14 +82,14 @@
     <Compile Include="FastWin32\Memory\MemoryExecute.cs" />
     <Compile Include="FastWin32\Memory\Pointer.cs" />
     <Compile Include="FastWin32\Memory\Util.cs" />
-    <Compile Include="FastWin32\Module.cs" />
+    <Compile Include="FastWin32\Diagnostics\ModuleX.cs" />
     <Compile Include="FastWin32\NativeMethods.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="FastWin32\Control\SysDateTimePick32.cs" />
     <Compile Include="FastWin32\Control\SYSTEMTIME.cs" />
     <Compile Include="FastWin32\TEST.cs" />
     <Compile Include="FastWin32\Asm\Example\TrueRandom.cs" />
-    <Compile Include="FastWin32\Window.cs" />
+    <Compile Include="FastWin32\Diagnostics\WindowX.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -92,14 +100,17 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>NAsm.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Include="FastWin32\Diagnostics\DInvoker.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>DInvoker.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="FastWin32.snk" />
-    <None Include="FastWin32\Resources\nasm.lzma" />
+    <None Include="Resources\nasm.lzma" />
+    <None Include="Resources\DInvoker.lzma" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="FastWin32\Hook\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="..\LzmaSharp\LzmaSharp.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

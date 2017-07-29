@@ -7,17 +7,10 @@ using static FastWin32.NativeMethods;
 namespace FastWin32.Asm.Example
 {
     /// <summary>
-    /// 随机数生成器（需要CPU支持，可用于Intel Ivy Bridge以及之后架构的处理器，AMD 2015年6月以及之后架构的处理器）
+    /// 随机数生成器（使用内联汇编的一个例子）（需要CPU支持，可用于Intel Ivy Bridge以及之后架构的处理器，AMD Zen以及之后架构的处理器）
     /// </summary>
     public class TrueRandom
     {
-        /******************************
-        * 参考资料：
-        * https://software.intel.com/en-us/articles/intel-digital-random-number-generator-drng-software-implementation-guide
-        * http://www.cnblogs.com/gc2013/p/4660430.html
-        * https://en.wikipedia.org/wiki/RdRand
-        ******************************/
-
         private static bool _isInitialized;
         private static bool _isSupported;
         private delegate uint GetEcxNativeCall();
@@ -38,7 +31,6 @@ namespace FastWin32.Asm.Example
                 //已经初始化过，返回是否CPU支持指令
                 return _isSupported;
 
-            IntPtr pAsm;
             byte[] bytAsm;
 
             _isInitialized = true;
@@ -46,9 +38,6 @@ namespace FastWin32.Asm.Example
             //获取是否支持
             if (!_isSupported)
                 return false;
-            pAsm = MemoryManagement.AllocMemoryInternal(100, MemoryProtectionFlags.PAGE_EXECUTE_READ);
-            //分配内存，用于存储机器码
-            #region short
             bytAsm = new byte[]
             {
                 0xF, 0xC7, 0xF0,
@@ -56,29 +45,8 @@ namespace FastWin32.Asm.Example
                 0xC3
                 //ret
             };
-            if (!MemoryRW.WriteBytesInternal((IntPtr)(-1), pAsm, bytAsm))
-                //写入失败
-                throw new Win32Exception();
-            Rand16Native = (Rand16NativeCall)Marshal.GetDelegateForFunctionPointer(pAsm, typeof(Rand16NativeCall));
-            //通过函数指针获取委托
-            #endregion
-            #region int
-            pAsm += bytAsm.Length;
-            bytAsm = new byte[]
-            {
-                0xF, 0xC7, 0xF0,
-                //RDRAND eax
-                0xC3
-                //ret
-            };
-            if (!MemoryRW.WriteBytesInternal((IntPtr)(-1), pAsm, bytAsm))
-                //写入失败
-                throw new Win32Exception();
-            Rand32Native = (Rand32NativeCall)Marshal.GetDelegateForFunctionPointer(pAsm, typeof(Rand32NativeCall));
-            //通过函数指针获取委托
-            #endregion
-            #region short
-            pAsm += bytAsm.Length;
+            Rand16Native = AsmLib.GetDelegateForAsm<Rand16NativeCall>(bytAsm);
+            Rand32Native = AsmLib.GetDelegateForAsm<Rand32NativeCall>(bytAsm);
             bytAsm = new byte[]
             {
                 0x48, 0xF, 0xC7, 0xF0,
@@ -86,12 +54,7 @@ namespace FastWin32.Asm.Example
                 0xC3
                 //ret
             };
-            if (!MemoryRW.WriteBytesInternal((IntPtr)(-1), pAsm, bytAsm))
-                //写入失败
-                throw new Win32Exception();
-            Rand64Native = (Rand64NativeCall)Marshal.GetDelegateForFunctionPointer(pAsm, typeof(Rand64NativeCall));
-            //通过函数指针获取委托
-            #endregion
+            Rand64Native = AsmLib.GetDelegateForAsm<Rand64NativeCall>(bytAsm);
             return true;
         }
 
@@ -100,28 +63,15 @@ namespace FastWin32.Asm.Example
         /// </summary>
         private static unsafe void IsSupported()
         {
-            IntPtr pAsm;
             byte[] bytAsm;
             uint ecx;
 
             ecx = 0;
             if (Environment.Is64BitProcess)
-            {
-                //664位汇编
                 bytAsm = new byte[] { 0x40, 0x55, 0x53, 0x48, 0x83, 0xEC, 0x68, 0x48, 0x8B, 0xEC, 0xB8, 0x04, 0x00, 0x00, 0x00, 0x48, 0x6B, 0xC0, 0x00, 0x48, 0x8D, 0x44, 0x05, 0x00, 0x48, 0x89, 0x45, 0x50, 0xB8, 0x01, 0x00, 0x00, 0x00, 0x33, 0xC9, 0x0F, 0xA2, 0x4C, 0x8B, 0x45, 0x50, 0x41, 0x89, 0x00, 0x41, 0x89, 0x58, 0x04, 0x41, 0x89, 0x48, 0x08, 0x41, 0x89, 0x50, 0x0C, 0xB8, 0x04, 0x00, 0x00, 0x00, 0x48, 0x6B, 0xC0, 0x02, 0x8B, 0x44, 0x05, 0x00, 0x48, 0x8D, 0x65, 0x68, 0x5B, 0x5D, 0xC3 };
-                //真·C++代码（生成的汇编转换成的机器码）
-            }
             else
-            {
-                //32位汇编
                 bytAsm = new byte[] { 0x55, 0x8B, 0xEC, 0x83, 0xEC, 0x50, 0x53, 0x56, 0x57, 0xB8, 0x04, 0x00, 0x00, 0x00, 0x6B, 0xC8, 0x00, 0x8D, 0x74, 0x0D, 0xF0, 0xB8, 0x01, 0x00, 0x00, 0x00, 0x33, 0xC9, 0x0F, 0xA2, 0x89, 0x06, 0x89, 0x5E, 0x04, 0x89, 0x4E, 0x08, 0x89, 0x56, 0x0C, 0xB8, 0x04, 0x00, 0x00, 0x00, 0xD1, 0xE0, 0x8B, 0x44, 0x05, 0xF0, 0x5F, 0x5E, 0x5B, 0x8B, 0xE5, 0x5D, 0xC3 };
-            }
-            pAsm = MemoryManagement.AllocMemoryInternal((uint)bytAsm.Length, MemoryProtectionFlags.PAGE_EXECUTE_READ);
-            //分配内存，用于存储机器码
-            if (!MemoryRW.WriteBytesInternal((IntPtr)(-1), pAsm, bytAsm))
-                //写入失败
-                throw new Win32Exception();
-            GetEcxNativeCall GetEcxNative = (GetEcxNativeCall)Marshal.GetDelegateForFunctionPointer(pAsm, typeof(GetEcxNativeCall));
+            GetEcxNativeCall GetEcxNative = AsmLib.GetDelegateForAsm<GetEcxNativeCall>(bytAsm);
             ecx = GetEcxNative();
             //获取ecx寄存器的值
             _isSupported = (ecx & 0x40000000) == 0x40000000;

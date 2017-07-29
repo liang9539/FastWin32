@@ -19,23 +19,20 @@ namespace FastWin32
         public const uint WRITE_DAC = 0x00040000;
         public const uint WRITE_OWNER = 0x00080000;
         public const uint SYNCHRONIZE = 0x00100000;
-
         /// <summary>
         /// 标准权限
         /// </summary>
         public const uint STANDARD_RIGHTS_REQUIRED = 0x000F0000;
-
         /// <summary>
         /// 无效句柄
         /// </summary>
         public static readonly IntPtr INVALID_HANDLE_VALUE = (IntPtr)(-1);
-
         /// <summary>
         /// 表示当前进程的伪句柄
         /// </summary>
         public static readonly IntPtr CURRENT_PROCESS = (IntPtr)(-1);
-
-        #region listview
+        #region message
+        public const uint WM_USER = 0x0400;
         public const uint LVM_FIRST = 0x1000;
         public const uint LVM_GETITEMCOUNT = LVM_FIRST + 4;
         public const uint LVM_DELETEITEM = LVM_FIRST + 8;
@@ -44,23 +41,12 @@ namespace FastWin32
         public const uint LVM_REDRAWITEMS = LVM_FIRST + 21;
         public const uint LVM_SETEXTENDEDLISTVIEWSTYLE = LVM_FIRST + 54;
         public const uint LVM_GETEXTENDEDLISTVIEWSTYLE = LVM_FIRST + 55;
-        #endregion
-
-        #region datetimepick
         public const uint DTM_FIRST = 0x1000;
         public const uint DTM_GETSYSTEMTIME = DTM_FIRST + 1;
         public const uint DTM_SETSYSTEMTIME = DTM_FIRST + 2;
         public const uint GDT_ERROR = unchecked((uint)-1);
         public const uint GDT_VALID = 0;
         public const uint GDT_NONE = 1;
-        #endregion
-
-        #region desktop
-
-        #endregion
-
-        #region message
-        public const uint WM_USER = 0x0400;
         #endregion
         #endregion
 
@@ -379,7 +365,7 @@ namespace FastWin32
         /// <summary>
         /// 处理器架构
         /// </summary>
-        public enum PROCESSOR_ARCHITECTURE
+        public enum PROCESSOR_ARCHITECTURE : uint
         {
             /// <summary>
             /// AMD64
@@ -405,6 +391,24 @@ namespace FastWin32
             /// 未知
             /// </summary>
             PROCESSOR_ARCHITECTURE_UNKNOWN = 0xFFFF
+        }
+
+        /// <summary>
+        /// 控制线程创建的标志
+        /// </summary>
+        public enum ThreadCreationFlags : uint
+        {
+            /// <summary>
+            /// 创建后立即运行
+            /// </summary>
+            Zero = 0,
+
+            /// <summary>
+            /// 线程被创建为挂起状态
+            /// </summary>
+            CREATE_SUSPENDED = 0x00000004,
+
+            STACK_SIZE_PARAM_IS_A_RESERVATION = 0x00010000
         }
         #endregion
 
@@ -520,7 +524,7 @@ namespace FastWin32
         #endregion
 
         #region method
-        #region process&handle
+        #region process thread handle
         /// <summary>
         /// 打开进程
         /// </summary>
@@ -568,6 +572,27 @@ namespace FastWin32
         public static extern bool IsWow64Process(
             IntPtr hProcess,
             out bool Wow64Process);
+
+        /// <summary>
+        /// 创建远程线程
+        /// </summary>
+        /// <param name="hProcess">进程句柄</param>
+        /// <param name="lpThreadAttributes"></param>
+        /// <param name="dwStackSize">堆栈初始大小，如果为0，则使用系统默认</param>
+        /// <param name="lpStartAddress">远程进程中线程的起始地址</param>
+        /// <param name="lpParameter">指向要传递给线程函数的变量的指针</param>
+        /// <param name="dwCreationFlags">线程创建的标志</param>
+        /// <param name="lpThreadId">指向接收线程标识符的变量的指针</param>
+        /// <returns>如果函数成功，返回值是新线程的句柄，否则返回值是IntPtr.Zero</returns>
+        [DllImport("kernel32.dll")]
+        public static unsafe extern IntPtr CreateRemoteThread(
+            IntPtr hProcess,
+            IntPtr lpThreadAttributes,
+            uint dwStackSize,
+            IntPtr lpStartAddress,
+            IntPtr lpParameter,
+            ThreadCreationFlags dwCreationFlags,
+            uint* lpThreadId);
         #endregion
 
         #region module
@@ -597,11 +622,20 @@ namespace FastWin32
         /// <param name="nSize">最大模块名长度</param>
         /// <returns>成功将返回非零整数</returns>
         [DllImport("psapi.dll", BestFitMapping = false, CharSet = CharSet.Unicode, SetLastError = true)]
-        public static extern uint GetModuleBaseName(
+        public static extern bool GetModuleBaseName(
             IntPtr hProcess,
             IntPtr hModule,
             StringBuilder lpBaseName,
             uint nSize);
+
+        /// <summary>
+        /// 获取当前进程中符合条件的模块句柄
+        /// </summary>
+        /// <param name="lpModuleName">模块名</param>
+        /// <returns></returns>
+        [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern IntPtr GetModuleHandle(
+            string lpModuleName);
         #endregion
 
         #region memory
@@ -1247,6 +1281,19 @@ namespace FastWin32
             IntPtr hWndChildAfter,
             string lpszClass,
             string lpszWindow);
+        #endregion
+
+        #region dll
+        /// <summary>
+        /// 获取指定模块中导出函数的地址
+        /// </summary>
+        /// <param name="hModule">模块句柄</param>
+        /// <param name="lpProcName">函数名</param>
+        /// <returns></returns>
+        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
+        public static extern IntPtr GetProcAddress(
+            IntPtr hModule,
+            string lpProcName);
         #endregion
 
         #region system
