@@ -1,7 +1,7 @@
 ﻿using System;
 using FastWin32.Diagnostics;
-using static FastWin32.Memory.Util;
 using static FastWin32.NativeMethods;
+using static FastWin32.Util;
 
 namespace FastWin32.Memory
 {
@@ -114,7 +114,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal delegate bool TemplateOfReadCallback<TValue>(IntPtr hProcess, IntPtr addr, out TValue value);
+        private delegate bool TemplateOfReadCallback<TValue>(IntPtr hProcess, IntPtr addr, out TValue value);
 
         /// <summary>
         /// 内存读取模板回调函数（对于引用类型）
@@ -122,7 +122,7 @@ namespace FastWin32.Memory
         /// <param name="hProcess">进程句柄</param>
         /// <param name="addr">地址</param>
         /// <returns></returns>
-        internal delegate bool TemplateOfReadRefCallback(IntPtr hProcess, IntPtr addr);
+        private delegate bool TemplateOfReadRefCallback(IntPtr hProcess, IntPtr addr);
 
         /// <summary>
         /// 内存写入模板回调函数（对于值/引用类型）
@@ -130,7 +130,7 @@ namespace FastWin32.Memory
         /// <param name="hProcess">进程句柄</param>
         /// <param name="addr">地址</param>
         /// <returns></returns>
-        internal delegate bool TemplateOfWriteCallback(IntPtr hProcess, IntPtr addr);
+        private delegate bool TemplateOfWriteCallback(IntPtr hProcess, IntPtr addr);
 
         /// <summary>
         /// 内存读取模板（对于值类型）
@@ -141,18 +141,17 @@ namespace FastWin32.Memory
         /// <param name="value">值</param>
         /// <param name="reader">读取器</param>
         /// <returns></returns>
-        internal static bool TemplateOfRead<TValue>(uint processId, IntPtr addr, out TValue value, TemplateOfReadCallback<TValue> reader)
+        private static bool TemplateOfRead<TValue>(uint processId, IntPtr addr, out TValue value, TemplateOfReadCallback<TValue> reader)
         {
             IntPtr hProcess;
 
+            value = default(TValue);
             hProcess = OpenProcessRW(processId);
             //读写权限打开进程
             if (hProcess == IntPtr.Zero)
-            {
-                //打开失败
-                value = default(TValue);
                 return false;
-            }
+            if (ProcessX.Is64ProcessInternal(hProcess) && !Environment.Is64BitProcess)
+                throw new NotSupportedException("目标进程为64位但当前进程为32位");
             try
             {
                 return reader(hProcess, addr, out value);
@@ -174,18 +173,17 @@ namespace FastWin32.Memory
         /// <param name="value">值</param>
         /// <param name="reader">读取器</param>
         /// <returns></returns>
-        internal static bool TemplateOfRead<TValue>(uint processId, Pointer p, out TValue value, TemplateOfReadCallback<TValue> reader)
+        private static bool TemplateOfRead<TValue>(uint processId, Pointer p, out TValue value, TemplateOfReadCallback<TValue> reader)
         {
             IntPtr hProcess;
 
+            value = default(TValue);
             hProcess = OpenProcessRW(processId);
             //读写权限打开进程
             if (hProcess == IntPtr.Zero)
-            {
-                //打开失败
-                value = default(TValue);
                 return false;
-            }
+            if (ProcessX.Is64ProcessInternal(hProcess) && !Environment.Is64BitProcess)
+                throw new NotSupportedException("目标进程为64位但当前进程为32位");
             try
             {
                 if (!GetPointerAddrInternal(hProcess, p))
@@ -211,15 +209,16 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="reader">读取器</param>
         /// <returns></returns>
-        internal static bool TemplateOfReadRef(uint processId, IntPtr addr, TemplateOfReadRefCallback reader)
+        private static bool TemplateOfReadRef(uint processId, IntPtr addr, TemplateOfReadRefCallback reader)
         {
             IntPtr hProcess;
 
             hProcess = OpenProcessRW(processId);
             //读写权限打开进程
             if (hProcess == IntPtr.Zero)
-                //打开失败
                 return false;
+            if (ProcessX.Is64ProcessInternal(hProcess) && !Environment.Is64BitProcess)
+                throw new NotSupportedException("目标进程为64位但当前进程为32位");
             try
             {
                 return reader(hProcess, addr);
@@ -239,15 +238,16 @@ namespace FastWin32.Memory
         /// <param name="p">指针</param>
         /// <param name="reader">读取器</param>
         /// <returns></returns>
-        internal static bool TemplateOfReadRef(uint processId, Pointer p, TemplateOfReadRefCallback reader)
+        private static bool TemplateOfReadRef(uint processId, Pointer p, TemplateOfReadRefCallback reader)
         {
             IntPtr hProcess;
 
             hProcess = OpenProcessRW(processId);
             //读写权限打开进程
             if (hProcess == IntPtr.Zero)
-                //打开失败
                 return false;
+            if (ProcessX.Is64ProcessInternal(hProcess) && !Environment.Is64BitProcess)
+                throw new NotSupportedException("目标进程为64位但当前进程为32位");
             try
             {
                 if (!GetPointerAddrInternal(hProcess, p))
@@ -270,15 +270,16 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="writer">写入器</param>
         /// <returns></returns>
-        internal static bool TemplateOfWrite(uint processId, IntPtr addr, TemplateOfWriteCallback writer)
+        private static bool TemplateOfWrite(uint processId, IntPtr addr, TemplateOfWriteCallback writer)
         {
             IntPtr hProcess;
 
             hProcess = OpenProcessRW(processId);
             //读写权限打开进程
             if (hProcess == IntPtr.Zero)
-                //打开失败
                 return false;
+            if (ProcessX.Is64ProcessInternal(hProcess) && !Environment.Is64BitProcess)
+                throw new NotSupportedException("目标进程为64位但当前进程为32位");
             try
             {
                 return writer(hProcess, addr);
@@ -298,15 +299,16 @@ namespace FastWin32.Memory
         /// <param name="p">指针</param>
         /// <param name="writer">写入器</param>
         /// <returns></returns>
-        internal static bool TemplateOfWrite(uint processId, Pointer p, TemplateOfWriteCallback writer)
+        private static bool TemplateOfWrite(uint processId, Pointer p, TemplateOfWriteCallback writer)
         {
             IntPtr hProcess;
 
             hProcess = OpenProcessRW(processId);
             //读写权限打开进程
             if (hProcess == IntPtr.Zero)
-                //打开失败
                 return false;
+            if (ProcessX.Is64ProcessInternal(hProcess) && !Environment.Is64BitProcess)
+                throw new NotSupportedException("目标进程为64位但当前进程为32位");
             try
             {
                 if (!GetPointerAddrInternal(hProcess, p))
@@ -326,7 +328,7 @@ namespace FastWin32.Memory
         #region 读写字节数组
         #region 读取字节数组
         /// <summary>
-        /// 读取字节数组
+        /// 读取字节数组，读取的长度由value的长度决定
         /// </summary>
         /// <param name="processId">进程ID</param>
         /// <param name="addr">地址</param>
@@ -336,12 +338,14 @@ namespace FastWin32.Memory
         {
             if (value == null)
                 throw new ArgumentNullException();
+            if (value.Length == 0)
+                throw new ArgumentException();
 
             return TemplateOfReadRef(processId, addr, (IntPtr hProcess, IntPtr addrCallback) => ReadBytesInternal(hProcess, addrCallback, value));
         }
 
         /// <summary>
-        /// 读取字节数组
+        /// 读取字节数组，读取的长度由value的长度决定
         /// </summary>
         /// <param name="processId">进程ID</param>
         /// <param name="p">指针</param>
@@ -351,12 +355,14 @@ namespace FastWin32.Memory
         {
             if (value == null)
                 throw new ArgumentNullException();
+            if (value.Length == 0)
+                throw new ArgumentException();
 
             return TemplateOfReadRef(processId, p, (IntPtr hProcess, IntPtr addrCallback) => ReadBytesInternal(hProcess, addrCallback, value));
         }
 
         /// <summary>
-        /// 读取字节数组
+        /// 读取字节数组，读取的长度由value的长度决定
         /// </summary>
         /// <param name="hProcess">进程句柄</param>
         /// <param name="addr">地址</param>
@@ -370,7 +376,7 @@ namespace FastWin32.Memory
 
         #region 写入字节数组
         /// <summary>
-        /// 写入字节数组
+        /// 写入字节数组，写入的长度由value的长度决定
         /// </summary>
         /// <param name="processId">进程ID</param>
         /// <param name="addr">地址</param>
@@ -380,12 +386,14 @@ namespace FastWin32.Memory
         {
             if (value == null)
                 throw new ArgumentNullException();
+            if (value.Length == 0)
+                throw new ArgumentException();
 
             return TemplateOfWrite(processId, addr, (IntPtr hProcess, IntPtr addrCallback) => WriteBytesInternal(hProcess, addrCallback, value));
         }
 
         /// <summary>
-        /// 写入字节数组
+        /// 写入字节数组，写入的长度由value的长度决定
         /// </summary>
         /// <param name="processId">进程ID</param>
         /// <param name="p">指针</param>
@@ -395,12 +403,14 @@ namespace FastWin32.Memory
         {
             if (value == null)
                 throw new ArgumentNullException();
+            if (value.Length == 0)
+                throw new ArgumentException();
 
             return TemplateOfWrite(processId, p, (IntPtr hProcess, IntPtr addrCallback) => WriteBytesInternal(hProcess, addrCallback, value));
         }
 
         /// <summary>
-        /// 写入字节数组
+        /// 写入字节数组，写入的长度由value的长度决定
         /// </summary>
         /// <param name="hProcess">进程句柄</param>
         /// <param name="addr">地址</param>
@@ -411,6 +421,102 @@ namespace FastWin32.Memory
             return WriteProcessMemory(hProcess, addr, value, (uint)value.Length, null);
         }
         #endregion
+        #endregion
+
+        #region 读取区域
+        /// <summary>
+        /// 读取内存页面模式
+        /// </summary>
+        public enum ReadPageMode
+        {
+            /// <summary>
+            /// 当前地址之后（包括当前地址）
+            /// </summary>
+            After,
+            /// <summary>
+            /// 当前地址之前（包括当前地址）
+            /// </summary>
+            Before,
+            /// <summary>
+            /// 整个内存页面
+            /// </summary>
+            Full
+        }
+
+        /// <summary>
+        /// 读取地址所在内存页面，读取长度由页面大小以及mode决定决定
+        /// </summary>
+        /// <param name="processId">进程ID</param>
+        /// <param name="addr">地址</param>
+        /// <param name="value">值</param>
+        /// <param name="mode">读取模式</param>
+        /// <returns></returns>
+        public static unsafe bool ReadPage(uint processId, IntPtr addr, out byte[] value, ReadPageMode mode)
+        {
+            IntPtr hProcess;
+
+            hProcess = OpenProcessRWQuery(processId);
+            if (hProcess == IntPtr.Zero)
+            {
+                value = null;
+                return false;
+            }
+            return ReadPageInternal(hProcess, addr, out value, mode);
+        }
+
+        /// <summary>
+        /// 读取地址所在内存页面，读取长度由页面大小以及mode决定决定
+        /// </summary>
+        /// <param name="processId">进程ID</param>
+        /// <param name="p">指针</param>
+        /// <param name="value">值</param>
+        /// <param name="mode">读取模式</param>
+        /// <returns></returns>
+        public static unsafe bool ReadPage(uint processId, Pointer p, out byte[] value, ReadPageMode mode)
+        {
+            IntPtr hProcess;
+
+            value = null;
+            hProcess = OpenProcessRWQuery(processId);
+            if (hProcess == IntPtr.Zero)
+                return false;
+            if (!GetPointerAddrInternal(hProcess, p))
+                return false;
+            return ReadPageInternal(hProcess, p._lastAddr, out value, mode);
+        }
+
+        /// <summary>
+        /// 读取地址所在内存页面，读取长度由页面大小以及mode决定决定
+        /// </summary>
+        /// <param name="hProcess">进程句柄</param>
+        /// <param name="addr">地址</param>
+        /// <param name="value">值</param>
+        /// <param name="mode">读取模式</param>
+        /// <returns></returns>
+        internal static unsafe bool ReadPageInternal(IntPtr hProcess, IntPtr addr, out byte[] value, ReadPageMode mode)
+        {
+            value = null;
+            if (VirtualQueryEx(hProcess, addr, out MEMORY_BASIC_INFORMATION pageInfo, MEMORY_BASIC_INFORMATION.Size) != MEMORY_BASIC_INFORMATION.Size)
+                //查询失败
+                return false;
+            switch (mode)
+            {
+                case ReadPageMode.After:
+                    value = new byte[(int)pageInfo.BaseAddress + (int)pageInfo.RegionSize - (int)addr];
+                    //读取长度=页面基址+页面大小-当前地址
+                    break;
+                case ReadPageMode.Before:
+                    value = new byte[(int)addr - (int)pageInfo.BaseAddress + 1];
+                    //读取长度=当前地址-页面基址+1
+                    break;
+                case ReadPageMode.Full:
+                    value = new byte[(int)pageInfo.RegionSize];
+                    //读取长度=页面大小
+                    addr = pageInfo.BaseAddress;
+                    break;
+            }
+            return ReadProcessMemory(hProcess, addr, value, (uint)value.Length, null);
+        }
         #endregion
 
         #region 读写字节

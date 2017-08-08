@@ -2,8 +2,8 @@
 using System.ComponentModel;
 using FastWin32.Diagnostics;
 using static FastWin32.Memory.MemoryRW;
-using static FastWin32.Memory.Util;
 using static FastWin32.NativeMethods;
+using static FastWin32.Util;
 
 namespace FastWin32.Memory
 {
@@ -12,6 +12,8 @@ namespace FastWin32.Memory
     /// </summary>
     public static class MemoryScan
     {
+        //TODO: 修复多线程支持，区分32位和64位
+
         #region MemoryProtectionFlags生成器
         /// <summary>
         /// 所有内存保护选项
@@ -127,38 +129,52 @@ namespace FastWin32.Memory
         /// <returns></returns>
         private static PagePool GetValidRange(IntPtr hProcess, MemoryProtectionFlags protectionFlags)
         {
-            long startAddr;
-            long stopAddr;
+            IntPtr startAddr;
+            IntPtr stopAddr;
             uint size;
             PagePool result;
 
+            size = MEMORY_BASIC_INFORMATION.Size;
+            //获取MEMORY_BASIC_INFORMATION结构的大小（32位与64位大小不同，因为用了IntPtr）
+            result = new PagePool();
             if (ProcessX.Is64ProcessInternal(hProcess))
             {
                 //64位进程
-                startAddr = 0x0;
-                stopAddr = 0x7FFF_FFFF_FFFF_FFFF;
+                if (!Environment.Is64BitProcess)
+                    throw new NotSupportedException("目标进程为64位但当前进程为32位");
+                startAddr = IntPtr.Zero;
+                stopAddr = (IntPtr)0x7FFF_FFFF_FFFF_FFFF;
+                do
+                {
+                    if (VirtualQueryEx(hProcess, startAddr, out MEMORY_BASIC_INFORMATION regionInfo, size) != size)
+                        //查询内存页面信息失败
+                        throw new Win32Exception();
+                    if (((regionInfo.State & PageState.MEM_COMMIT) == PageState.MEM_COMMIT) && ((regionInfo.Protect & protectionFlags) != 0))
+                        //保护选项存在交集且存在PageState.MEM_COMMIT
+                        result.Add(new Tuple<IntPtr, IntPtr>(regionInfo.BaseAddress, regionInfo.RegionSize));
+                    //添加到结果
+                    startAddr = (IntPtr)((long)startAddr + (long)regionInfo.RegionSize);
+                    //新的基址为老基址+老内存页面大小
+                } while ((long)startAddr <= (long)stopAddr);
             }
             else
             {
                 //32位进程
-                startAddr = 0x0;
-                stopAddr = 0x7FFF_FFFF;
+                startAddr = IntPtr.Zero;
+                stopAddr = (IntPtr)0x7FFF_FFFF;
+                do
+                {
+                    if (VirtualQueryEx(hProcess, startAddr, out MEMORY_BASIC_INFORMATION regionInfo, size) != size)
+                        //查询内存页面信息失败
+                        throw new Win32Exception();
+                    if (((regionInfo.State & PageState.MEM_COMMIT) == PageState.MEM_COMMIT) && ((regionInfo.Protect & protectionFlags) != 0))
+                        //保护选项存在交集且存在PageState.MEM_COMMIT
+                        result.Add(new Tuple<IntPtr, IntPtr>(regionInfo.BaseAddress, regionInfo.RegionSize));
+                    //添加到结果
+                    startAddr = (IntPtr)((int)startAddr + (int)regionInfo.RegionSize);
+                    //新的基址为老基址+老内存页面大小
+                } while ((int)startAddr <= (int)stopAddr);
             }
-            size = MEMORY_BASIC_INFORMATION.Size;
-            //获取MEMORY_BASIC_INFORMATION结构的大小（32位与64位大小不同，因为用了IntPtr）
-            result = new PagePool();
-            do
-            {
-                if (VirtualQueryEx(hProcess, (IntPtr)startAddr, out MEMORY_BASIC_INFORMATION regionInfo, size) != size)
-                    //查询内存页面信息失败
-                    throw new Win32Exception();
-                if (((regionInfo.State & PageState.MEM_COMMIT) == PageState.MEM_COMMIT) && ((regionInfo.Protect & protectionFlags) != 0))
-                    //保护选项存在交集且存在PageState.MEM_COMMIT
-                    result.Add(new Tuple<IntPtr, long>(regionInfo.BaseAddress, (long)regionInfo.RegionSize));
-                //添加到结果
-                startAddr += (long)regionInfo.RegionSize;
-                //新的基址为老基址+老内存页面大小
-            } while (startAddr <= stopAddr);
             return result;
         }
         #endregion
@@ -242,29 +258,29 @@ namespace FastWin32.Memory
         /// <returns></returns>
         private static void ScanThread(IntPtr hProcess,PagePool pool, byte[] src, int alignment)
         {
-            Tuple<IntPtr, long> page;
-            byte[] bytPage;
+            //Tuple<IntPtr, IntPtr> page;
+            //byte[] bytPage;
 
-            do
-            {
-                page = pool.Next();
-                //取出
-                if (page == null)
-                    //取完了
-                    return;
-                if (page.Item2 < src.LongLength)
-                    //页面大小小于要搜索内容的长度
-                    continue;
-                bytPage = new byte[page.Item2];
-                //储存页面中所有字节
-                if (ReadBytesInternal(hProcess, page.Item1, bytPage) == false)
-                    //读取失败
-                    continue;
-                for (long i = 0; i < bytPage.LongLength; i++)
-                {
+            //do
+            //{
+            //    page = pool.Next();
+            //    //取出
+            //    if (page == null)
+            //        //取完了
+            //        return;
+            //    if (page.Item2 < src.LongLength)
+            //        //页面大小小于要搜索内容的长度
+            //        continue;
+            //    bytPage = new byte[page.Item2];
+            //    //储存页面中所有字节
+            //    if (ReadBytesInternal(hProcess, page.Item1, bytPage) == false)
+            //        //读取失败
+            //        continue;
+            //    for (long i = 0; i < bytPage.LongLength; i++)
+            //    {
 
-                }
-            } while (true);
+            //    }
+            //} while (true);
         }
         #endregion
     }

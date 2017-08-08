@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Text;
 using static FastWin32.NativeMethods;
 
@@ -16,9 +15,9 @@ namespace FastWin32.Diagnostics
         /// </summary>
         /// <param name="processId">进程ID</param>
         /// <returns></returns>
-        private static IntPtr OpenProcess(uint processId)
+        private static IntPtr OpenProcessRQuery(uint processId)
         {
-            return NativeMethods.OpenProcess(ProcAccessFlags.PROCESS_VM_READ | ProcAccessFlags.PROCESS_QUERY_INFORMATION, false, processId);
+            return OpenProcess(ProcAccessFlags.PROCESS_VM_READ | ProcAccessFlags.PROCESS_QUERY_INFORMATION, false, processId);
         }
         #endregion
 
@@ -34,14 +33,23 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         internal static unsafe bool GetHandleInternal(IntPtr hProcess, bool first, string moduleName, EnumModulesFilterFlag flag, out IntPtr value)
         {
-            IntPtr hModule = IntPtr.Zero;
+            if (!first && moduleName == null)
+                throw new ArgumentNullException("first为false时moduleName不能为null");
+
+            bool is64Bit;
+            IntPtr hModule;
             IntPtr[] hModules;
             StringBuilder baseName;
-            string lowerName;
-            uint cb = 0;
+            string normalizedName;
 
             value = IntPtr.Zero;
-            if (!EnumProcessModulesEx(hProcess, &hModule, (uint)IntPtr.Size, ref cb, flag))
+            is64Bit = ProcessX.Is64ProcessInternal(hProcess);
+            if (is64Bit && !Environment.Is64BitProcess)
+                throw new NotSupportedException("目标进程为64位但当前进程为32位");
+            if (is64Bit && flag == EnumModulesFilterFlag.X86)
+                throw new NotSupportedException("尝试在64位进程中枚举32位模块");
+            hModule = IntPtr.Zero;
+            if (!EnumProcessModulesEx(hProcess, &hModule, (uint)IntPtr.Size, out uint cb, flag))
                 //先获取储存所有模块句柄所需的字节数
                 return false;
             if (first)
@@ -54,28 +62,47 @@ namespace FastWin32.Diagnostics
             //根据所需字节数创建数组
             fixed (IntPtr* p = &hModules[0])
             {
-                if (!EnumProcessModulesEx(hProcess, p, cb, ref cb, flag))
+                if (!EnumProcessModulesEx(hProcess, p, cb, out cb, flag))
                     //获取所有模块句柄
                     return false;
             }
             baseName = new StringBuilder((int)MAX_MODULE_NAME32);
             //储存模块名
-            lowerName = moduleName.ToLower();
-            //获取小写模块名
+            normalizedName = moduleName.ToUpperInvariant();
+            //获取大写模块名
             for (int i = 0; i < hModules.Length; i++)
             {
                 //遍历所有模块名
                 if (!GetModuleBaseName(hProcess, hModules[i], baseName, MAX_MODULE_NAME32))
                     //获取模块名失败
-                    throw new Win32Exception();
-                if (baseName.ToString().ToLower() == lowerName)
+                    return false;
+                if (baseName.ToString().ToUpperInvariant() == normalizedName)
                 {
-                    //如果相等
+                    //比较模块名
                     value = hModules[i];
                     return true;
                 }
             }
             return false;
+        }
+
+        /// <summary>
+        /// 获取当前进程主模块句柄
+        /// </summary>
+        /// <returns></returns>
+        public static IntPtr GetHandle()
+        {
+            return GetModuleHandle(null);
+        }
+
+        /// <summary>
+        /// 获取当前进程模块句柄
+        /// </summary>
+        /// <param name="moduleName">模块名</param>
+        /// <returns></returns>
+        public static IntPtr GetHandle(string moduleName)
+        {
+            return GetModuleHandle(moduleName);
         }
 
         /// <summary>
@@ -87,12 +114,12 @@ namespace FastWin32.Diagnostics
         {
             IntPtr hProcess;
 
-            hProcess = OpenProcess(processId);
+            hProcess = OpenProcessRQuery(processId);
             if (hProcess == IntPtr.Zero)
                 return IntPtr.Zero;
-            GetHandleInternal(hProcess, true, string.Empty, EnumModulesFilterFlag.DEFAULT, out IntPtr Handle);
+            GetHandleInternal(hProcess, true, null, EnumModulesFilterFlag.DEFAULT, out IntPtr hModule);
             CloseHandle(hProcess);
-            return Handle;
+            return hModule;
         }
 
         /// <summary>
@@ -105,12 +132,12 @@ namespace FastWin32.Diagnostics
         {
             IntPtr hProcess;
 
-            hProcess = OpenProcess(processId);
+            hProcess = OpenProcessRQuery(processId);
             if (hProcess == IntPtr.Zero)
                 return IntPtr.Zero;
-            GetHandleInternal(hProcess, false, moduleName, EnumModulesFilterFlag.ALL, out IntPtr Handle);
+            GetHandleInternal(hProcess, false, moduleName, EnumModulesFilterFlag.ALL, out IntPtr hModule);
             CloseHandle(hProcess);
-            return Handle;
+            return hModule;
         }
         #endregion
     }

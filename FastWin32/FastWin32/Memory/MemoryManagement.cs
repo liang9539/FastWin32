@@ -1,6 +1,6 @@
 ﻿using System;
-using static FastWin32.Memory.Util;
 using static FastWin32.NativeMethods;
+using static FastWin32.Util;
 
 namespace FastWin32.Memory
 {

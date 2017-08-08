@@ -26,22 +26,15 @@ namespace FastWin32.Memory
         }
 
         /// <summary>
-        /// 生成临时文件夹
+        /// 创建临时文件夹并返回路径
         /// </summary>
         /// <returns></returns>
         private string GenTempDir()
         {
-            string tempPath;
             string result;
 
-            tempPath = Path.GetTempPath();
-            do
-            {
-                result = Path.Combine(tempPath, "MemoryScan-", Guid.NewGuid().ToString());
-                //生成一个路径
-            } while (File.Exists(result));
+            result = Path.Combine(Path.GetTempPath(), "MemoryScan", Guid.NewGuid().ToString());
             Directory.CreateDirectory(result);
-            //创建目录
             return result;
         }
 

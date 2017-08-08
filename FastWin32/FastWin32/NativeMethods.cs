@@ -48,6 +48,10 @@ namespace FastWin32
         public const uint GDT_VALID = 0;
         public const uint GDT_NONE = 1;
         #endregion
+        /// <summary>
+        /// 无限超时等待
+        /// </summary>
+        public const uint INFINITE = 0xFFFFFFFF;
         #endregion
 
         #region enum
@@ -584,7 +588,7 @@ namespace FastWin32
         /// <param name="dwCreationFlags">线程创建的标志</param>
         /// <param name="lpThreadId">指向接收线程标识符的变量的指针</param>
         /// <returns>如果函数成功，返回值是新线程的句柄，否则返回值是IntPtr.Zero</returns>
-        [DllImport("kernel32.dll")]
+        [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]
         public static unsafe extern IntPtr CreateRemoteThread(
             IntPtr hProcess,
             IntPtr lpThreadAttributes,
@@ -593,6 +597,17 @@ namespace FastWin32
             IntPtr lpParameter,
             ThreadCreationFlags dwCreationFlags,
             uint* lpThreadId);
+
+        /// <summary>
+        /// 等待对象
+        /// </summary>
+        /// <param name="hHandle">句柄</param>
+        /// <param name="dwMilliseconds">超时间隔，以毫秒为单位</param>
+        /// <returns></returns>
+        [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]
+        public static extern uint WaitForSingleObject(
+            IntPtr hHandle,
+            uint dwMilliseconds);
         #endregion
 
         #region module
@@ -610,7 +625,7 @@ namespace FastWin32
             IntPtr hProcess,
             IntPtr* lphModule,
             uint cb,
-            ref uint lpcbNeeded,
+            out uint lpcbNeeded,
             EnumModulesFilterFlag dwFilterFlag);
 
         /// <summary>

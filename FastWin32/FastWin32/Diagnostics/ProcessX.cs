@@ -23,6 +23,21 @@ namespace FastWin32.Diagnostics
         /// <summary>
         /// 判断进程是否为64位进程
         /// </summary>
+        /// <param name="processId">进程ID</param>
+        /// <returns></returns>
+        public static bool Is64Process(uint processId)
+        {
+            IntPtr hProcess;
+
+            hProcess = OpenProcess(ProcAccessFlags.PROCESS_QUERY_INFORMATION, false, processId);
+            if (hProcess == IntPtr.Zero)
+                throw new Win32Exception("打开进程失败");
+            return Is64ProcessInternal(hProcess);
+        }
+
+        /// <summary>
+        /// 判断进程是否为64位进程
+        /// </summary>
         /// <param name="hProcess">进程句柄</param>
         /// <returns></returns>
         internal static bool Is64ProcessInternal(IntPtr hProcess)

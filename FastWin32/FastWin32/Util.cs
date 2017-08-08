@@ -1,7 +1,7 @@
 ﻿using System;
 using static FastWin32.NativeMethods;
 
-namespace FastWin32.Memory
+namespace FastWin32
 {
     /// <summary>
     /// 常用方法

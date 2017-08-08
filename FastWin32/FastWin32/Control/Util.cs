@@ -2,6 +2,7 @@
 using FastWin32.Diagnostics;
 using FastWin32.Memory;
 using static FastWin32.NativeMethods;
+using static FastWin32.Util;
 
 namespace FastWin32.Control
 {
@@ -27,10 +28,12 @@ namespace FastWin32.Control
             structure = default(TStruct);
             processId = ProcessX.GetProcessIdByHWnd(hWnd);
             //获取控件所在进程ID
-            hProcess = Memory.Util.OpenProcessRW(processId);
+            hProcess = OpenProcessRW(processId);
             //打开进程
             if (hProcess == IntPtr.Zero)
                 return false;
+            if (ProcessX.Is64ProcessInternal(hProcess) && !Environment.Is64BitProcess)
+                throw new NotSupportedException("目标进程为64位但当前进程为32位");
             try
             {
                 remoteAddr = MemoryManagement.AllocMemoryInternal(hProcess, structure.Size);
@@ -74,10 +77,12 @@ namespace FastWin32.Control
 
             processId = ProcessX.GetProcessIdByHWnd(hWnd);
             //获取控件所在进程ID
-            hProcess = Memory.Util.OpenProcessRW(processId);
+            hProcess = OpenProcessRW(processId);
             //打开进程
             if (hProcess == IntPtr.Zero)
                 return false;
+            if (ProcessX.Is64ProcessInternal(hProcess) && !Environment.Is64BitProcess)
+                throw new NotSupportedException("目标进程为64位但当前进程为32位");
             try
             {
                 remoteAddr = MemoryManagement.AllocMemoryInternal(hProcess, structure.Size);

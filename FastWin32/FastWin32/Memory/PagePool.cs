@@ -5,12 +5,13 @@ namespace FastWin32.Memory
     /// <summary>
     /// 内存页面池（用于多线程）
     /// </summary>
-    public class PagePool
+    internal class PagePool
     {
-        private Tuple<IntPtr, long>[] _items;
+        private Tuple<IntPtr, IntPtr>[] _items;
         private int _length;
-        private long _total;
+        private IntPtr _total;
         private bool _isEmpty;
+        private bool _is64Bit;
         private int _current;
 
         /// <summary>
@@ -25,9 +26,9 @@ namespace FastWin32.Memory
                     //指定的新容量大小小于内部集合有数据部分长度
                     throw new ArgumentException();
 
-                Tuple<IntPtr, long>[] array;
+                Tuple<IntPtr, IntPtr>[] array;
 
-                array = new Tuple<IntPtr, long>[value];
+                array = new Tuple<IntPtr, IntPtr>[value];
                 //将_items转移到这里
                 Array.Copy(_items, 0, array, 0, _length);
                 //将有数据部分转移
@@ -48,7 +49,7 @@ namespace FastWin32.Memory
         /// <summary>
         /// 要搜寻的内存大小
         /// </summary>
-        public long Total => _total;
+        public IntPtr Total => _total;
 
         /// <summary>
         /// 池是否为空
@@ -58,36 +59,14 @@ namespace FastWin32.Memory
             get
             {
                 lock (this)
-                {
                     return _isEmpty;
-                }
             }
         }
 
         /// <summary>
-        /// 索引器
+        /// 指示目标进程是否为64位进程
         /// </summary>
-        /// <param name="index">索引</param>
-        /// <returns></returns>
-        public Tuple<IntPtr, long> this[int index]
-        {
-            get
-            {
-                if (index >= _length)
-                    //索引超过有效部分
-                    throw new IndexOutOfRangeException();
-
-                return _items[index];
-            }
-            set
-            {
-                if (index >= _length)
-                    //索引超过有效部分
-                    throw new IndexOutOfRangeException();
-
-                _items[index] = value;
-            }
-        }
+        public bool Is64Bit => _is64Bit;
 
         /// <summary>
         /// 实例化（默认容量200）
@@ -103,20 +82,23 @@ namespace FastWin32.Memory
             if (capacity <= 0)
                 throw new ArgumentException();
 
-            _items = new Tuple<IntPtr, long>[capacity];
+            _items = new Tuple<IntPtr, IntPtr>[capacity];
         }
 
         /// <summary>
-        /// 添加一个内存区域元组
+        /// 添加一个内存页面元组
         /// </summary>
         /// <param name="item"></param>
-        public void Add(Tuple<IntPtr, long> item)
+        public void Add(Tuple<IntPtr, IntPtr> item)
         {
             if (_length == _items.Length)
                 //已满，进行扩容
                 Capacity *= 2;
 
-            _total += item.Item2;
+            if (_is64Bit)
+                _total = (IntPtr)((long)_total + (long)item.Item2);
+            else
+                _total = (IntPtr)((int)_total + (int)item.Item2);
             _items[_length] = item;
             _length++;
         }
@@ -135,32 +117,10 @@ namespace FastWin32.Memory
         }
 
         /// <summary>
-        /// 从池中取出一个元素
-        /// </summary>
-        /// <returns></returns>
-        public Tuple<IntPtr, long> Pop()
-        {
-            if (_length == 0)
-                //身体被掏空
-                throw new IndexOutOfRangeException();
-
-            Tuple<IntPtr, long> item;
-
-            _length--;
-            //长度减一
-            item = _items[_length];
-            _items[_length] = default(Tuple<IntPtr, long>);
-            //清除原元素
-            _total -= item.Item2;
-            //要扫描地址的总数降低
-            return item;
-        }
-
-        /// <summary>
         /// 返回下一个元素
         /// </summary>
         /// <returns></returns>
-        public Tuple<IntPtr, long> Next()
+        public Tuple<IntPtr, IntPtr> Next()
         {
             lock (this)
             {
@@ -179,34 +139,6 @@ namespace FastWin32.Memory
                         _isEmpty = true;
                 }
             }
-        }
-
-        /// <summary>
-        /// 移除指定索引的一个元素
-        /// </summary>
-        /// <param name="index">索引</param>
-        public void RemoveAt(int index)
-        {
-            if (index >= _length)
-                //索引超过有效部分
-                throw new IndexOutOfRangeException();
-
-            _length--;
-            _total -= _items[index].Item2;
-            if (index < _length)
-                Array.Copy(_items, index + 1, _items, index, _length - index);
-            _items[_length] = default(Tuple<IntPtr, long>);
-        }
-
-        /// <summary>
-        /// 返回数组
-        /// </summary>
-        /// <returns></returns>
-        public Tuple<IntPtr, long>[] ToArray()
-        {
-            Tuple<IntPtr, long>[] array = new Tuple<IntPtr, long>[_length];
-            Array.Copy(_items, 0, array, 0, _length);
-            return array;
         }
     }
 }

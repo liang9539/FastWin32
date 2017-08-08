@@ -44,28 +44,28 @@
     <AssemblyOriginatorKeyFile>FastWin32.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="FastWin32\Diagnostics\DInvoker.Designer.cs">
+    <Compile Include="FastWin32\Diagnostics\Res.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>DInvoker.resx</DependentUpon>
+      <DependentUpon>Res.resx</DependentUpon>
     </Compile>
-    <Compile Include="FastWin32\Diagnostics\Dll.cs" />
+    <Compile Include="FastWin32\Diagnostics\Injector.cs" />
     <Compile Include="FastWin32\Asm\AsmLib.cs" />
     <Compile Include="FastWin32\Asm\AsmCompileException.cs" />
     <Compile Include="FastWin32\Asm\InlineAsm.cs" />
     <Compile Include="FastWin32\Asm\Assembler.cs" />
-    <Compile Include="FastWin32\Asm\NAsm.Designer.cs">
+    <Compile Include="FastWin32\Asm\Res.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>NAsm.resx</DependentUpon>
+      <DependentUpon>Res.resx</DependentUpon>
     </Compile>
     <Compile Include="FastWin32\Control\Util.cs" />
     <Compile Include="FastWin32\Control\Win32Control.cs" />
     <Compile Include="FastWin32\Control\ExtendedListViewStyles.cs" />
     <Compile Include="FastWin32\Control\SysListView32.cs" />
     <Compile Include="FastWin32\Diagnostics\Desktop.cs" />
-    <Compile Include="FastWin32\Hook\HookAPI.cs" />
-    <Compile Include="FastWin32\Hook\IHook.cs" />
+    <Compile Include="FastWin32\Hook\ApiHook.cs" />
+    <Compile Include="FastWin32\Hook\QuickApiHook.cs" />
     <Compile Include="FastWin32\Memory\MemoryScan.cs" />
     <Compile Include="FastWin32\Memory\PagePool.cs" />
     <Compile Include="FastWin32\Memory\ScanResult.cs" />
@@ -81,7 +81,7 @@
     <Compile Include="FastWin32\Memory\MemoryRW.cs" />
     <Compile Include="FastWin32\Memory\MemoryExecute.cs" />
     <Compile Include="FastWin32\Memory\Pointer.cs" />
-    <Compile Include="FastWin32\Memory\Util.cs" />
+    <Compile Include="FastWin32\Util.cs" />
     <Compile Include="FastWin32\Diagnostics\ModuleX.cs" />
     <Compile Include="FastWin32\NativeMethods.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -96,19 +96,19 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="FastWin32\Asm\NAsm.resx">
+    <EmbeddedResource Include="FastWin32\Asm\Res.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>NAsm.Designer.cs</LastGenOutput>
+      <LastGenOutput>Res.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="FastWin32\Diagnostics\DInvoker.resx">
+    <EmbeddedResource Include="FastWin32\Diagnostics\Res.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>DInvoker.Designer.cs</LastGenOutput>
+      <LastGenOutput>Res.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="FastWin32.snk" />
-    <None Include="Resources\nasm.lzma" />
     <None Include="Resources\DInvoker.lzma" />
+    <None Include="Resources\NAsm.lzma" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="..\LzmaSharp\LzmaSharp.projitems" Label="Shared" />

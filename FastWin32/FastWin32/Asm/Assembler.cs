@@ -72,12 +72,12 @@ namespace FastWin32.Asm
             byte[] bytNasm;
             byte[] bytNdisasm;
 
-            _nasmDir = Path.Combine(Environment.GetEnvironmentVariable("TEMP"), "nasm");
+            _nasmDir = Path.Combine(Path.GetTempPath(), "nasm");
             //最终文件解压在此文件夹
             if (!Directory.Exists(_nasmDir))
                 //如果文件夹不存在，就创建
                 Directory.CreateDirectory(_nasmDir);
-            decompressedBuffer = LzmaCompressor.Decompress(NAsm.nasm);
+            decompressedBuffer = LzmaCompressor.Decompress(Res.NAsm);
             //解压
             _nasmPath = Path.Combine(_nasmDir, "nasm.exe");
             bytNasm = new byte[1124864];
@@ -134,7 +134,7 @@ namespace FastWin32.Asm
                 //编译成功
                 output = File.ReadAllLines(Path.Combine(_nasmDir, "list"));
                 //读取list
-                output = ListAnalyzer(output, 16, 24);
+                output = ListAnalyzer(output, 16, 18);
                 //获取机器码
                 return HexsToBytes(output);
             }
@@ -218,19 +218,22 @@ namespace FastWin32.Asm
         /// <returns></returns>
         private static string[] ListAnalyzer(string[] lines, int startIndex, int length)
         {
-            int linesLength;
-            string[] result;
+            List<string> result;
 
-            linesLength = lines[lines.Length - 1].Length == 0 ? lines.Length - 1 : lines.Length;
-            //如果最后一行是空行，真正行数=行数-1
-            result = new string[linesLength];
+            result = new List<string>();
             if (length == -1)
-                for (int i = 0; i < result.Length; i++)
-                    result[i] = lines[i].Substring(startIndex, lines[i].Length - startIndex).TrimEnd(' ');
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    if (lines[i].Length > startIndex)
+                        result.Add(lines[i].Substring(startIndex, lines[i].Length - startIndex).TrimEnd(' '));
+                }
             else
-                for (int i = 0; i < result.Length; i++)
-                    result[i] = lines[i].Substring(startIndex, length).TrimEnd(' ');
-            return result;
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    if (lines[i].Length > startIndex)
+                        result.Add(lines[i].Substring(startIndex, length).TrimEnd(' '));
+                }
+            return result.ToArray();
         }
 
         /// <summary>
