@@ -9,11 +9,6 @@ namespace FastWin32.Control
     public class SysDateTimePick32 : Win32Control
     {
         /// <summary>
-        /// 创建一个新的日期控件（未完成）
-        /// </summary>
-        public SysDateTimePick32() : base() { }
-
-        /// <summary>
         /// 使用已有SysDateTimePick32控件实例化SysDateTimePick32类
         /// </summary>
         /// <param name="hWnd">控件句柄</param>

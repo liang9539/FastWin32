@@ -29,14 +29,6 @@ namespace FastWin32.Control
         public bool Unicode { get => _unicode; set => _unicode = value; }
 
         /// <summary>
-        /// 创建新的Win32控件
-        /// </summary>
-        protected Win32Control()
-        {
-            throw new Exception("未实现");
-        }
-
-        /// <summary>
         /// 操作已有Win32控件
         /// </summary>
         /// <param name="hWnd">控件句柄</param>

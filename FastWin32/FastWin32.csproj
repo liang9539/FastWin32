@@ -10,6 +10,8 @@
     <AssemblyName>FastWin32</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,6 +25,7 @@
     <DocumentationFile>bin\Debug\FastWin32.xml</DocumentationFile>
     <CodeAnalysisRuleSet>
     </CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -36,6 +39,7 @@
     <DocumentationFile>bin\Release\FastWin32.xml</DocumentationFile>
     <CodeAnalysisRuleSet>
     </CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -44,20 +48,20 @@
     <AssemblyOriginatorKeyFile>FastWin32.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="FastWin32\Diagnostics\Res.Designer.cs">
+    <Compile Include="FastWin32\Diagnostics\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>Res.resx</DependentUpon>
+      <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="FastWin32\Diagnostics\Injector.cs" />
     <Compile Include="FastWin32\Asm\AsmLib.cs" />
     <Compile Include="FastWin32\Asm\AsmCompileException.cs" />
     <Compile Include="FastWin32\Asm\InlineAsm.cs" />
     <Compile Include="FastWin32\Asm\Assembler.cs" />
-    <Compile Include="FastWin32\Asm\Res.Designer.cs">
+    <Compile Include="FastWin32\Asm\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>Res.resx</DependentUpon>
+      <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="FastWin32\Control\Util.cs" />
     <Compile Include="FastWin32\Control\Win32Control.cs" />
@@ -96,13 +100,13 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="FastWin32\Asm\Res.resx">
+    <EmbeddedResource Include="FastWin32\Asm\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Res.Designer.cs</LastGenOutput>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="FastWin32\Diagnostics\Res.resx">
+    <EmbeddedResource Include="FastWin32\Diagnostics\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Res.Designer.cs</LastGenOutput>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

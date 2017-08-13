@@ -20,7 +20,7 @@ namespace FastWin32.Diagnostics
             get
             {
                 if (_dInvoker == null)
-                    _dInvoker = LzmaCompressor.Decompress(Res.DInvoker);
+                    _dInvoker = LzmaCompressor.Decompress(Resources.DInvoker);
                 return _dInvoker;
             }
         }
@@ -33,7 +33,7 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         public static bool Inject(uint processId, string dllPath)
         {
-            if (string.IsNullOrEmpty(dllPath))
+            if (string.IsNullOrWhiteSpace(dllPath))
                 throw new ArgumentException();
             if (!File.Exists(dllPath))
                 throw new DllNotFoundException();

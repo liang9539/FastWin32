@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace FastWin32.Macro
+﻿namespace FastWin32.Macro
 {
     /// <summary>
     /// minwindef.h
@@ -13,7 +11,6 @@ namespace FastWin32.Macro
         /// <param name="low">低位</param>
         /// <param name="high">高位</param>
         /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort MakeWord(byte low, byte high)
         {
             return unchecked((ushort)(low | high << 8));
@@ -25,7 +22,6 @@ namespace FastWin32.Macro
         /// <param name="low">低位</param>
         /// <param name="high">高位</param>
         /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint MakeLong(ushort low, ushort high)
         {
             return unchecked((uint)(low | high << 16));
@@ -36,7 +32,6 @@ namespace FastWin32.Macro
         /// </summary>
         /// <param name="value">值</param>
         /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte LowByte(ushort value)
         {
             return unchecked((byte)(value & 0xFF));
@@ -47,7 +42,6 @@ namespace FastWin32.Macro
         /// </summary>
         /// <param name="value">值</param>
         /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte HighByte(ushort value)
         {
             return unchecked((byte)(value >> 8));
@@ -58,7 +52,6 @@ namespace FastWin32.Macro
         /// </summary>
         /// <param name="value">值</param>
         /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort LowWord(uint value)
         {
             return unchecked((ushort)(value & 0xFFFF));
@@ -69,7 +62,6 @@ namespace FastWin32.Macro
         /// </summary>
         /// <param name="value">值</param>
         /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort HighWord(uint value)
         {
             return unchecked((ushort)(value >> 16));

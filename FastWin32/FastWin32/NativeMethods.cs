@@ -1305,7 +1305,7 @@ namespace FastWin32
         /// <param name="hModule">模块句柄</param>
         /// <param name="lpProcName">函数名</param>
         /// <returns></returns>
-        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
+        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
         public static extern IntPtr GetProcAddress(
             IntPtr hModule,
             string lpProcName);

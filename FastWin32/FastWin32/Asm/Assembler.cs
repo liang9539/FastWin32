@@ -77,7 +77,7 @@ namespace FastWin32.Asm
             if (!Directory.Exists(_nasmDir))
                 //如果文件夹不存在，就创建
                 Directory.CreateDirectory(_nasmDir);
-            decompressedBuffer = LzmaCompressor.Decompress(Res.NAsm);
+            decompressedBuffer = LzmaCompressor.Decompress(Resources.NAsm);
             //解压
             _nasmPath = Path.Combine(_nasmDir, "nasm.exe");
             bytNasm = new byte[1124864];

@@ -33,8 +33,8 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         internal static unsafe bool GetHandleInternal(IntPtr hProcess, bool first, string moduleName, EnumModulesFilterFlag flag, out IntPtr value)
         {
-            if (!first && moduleName == null)
-                throw new ArgumentNullException("first为false时moduleName不能为null");
+            if (!first && string.IsNullOrWhiteSpace(moduleName))
+                throw new ArgumentOutOfRangeException("first为false时moduleName不能为空");
 
             bool is64Bit;
             IntPtr hModule;
@@ -102,6 +102,9 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         public static IntPtr GetHandle(string moduleName)
         {
+            if (string.IsNullOrWhiteSpace(moduleName))
+                throw new ArgumentOutOfRangeException();
+
             return GetModuleHandle(moduleName);
         }
 
@@ -130,6 +133,9 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         public static IntPtr GetHandle(uint processId, string moduleName)
         {
+            if (string.IsNullOrWhiteSpace(moduleName))
+                throw new ArgumentOutOfRangeException();
+
             IntPtr hProcess;
 
             hProcess = OpenProcessRQuery(processId);

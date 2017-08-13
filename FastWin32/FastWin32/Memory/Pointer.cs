@@ -28,11 +28,6 @@ namespace FastWin32.Memory
         public int[] Offset => _offset;
 
         /// <summary>
-        /// 禁止无参构造函数
-        /// </summary>
-        private Pointer() { }
-
-        /// <summary>
         /// 实例化指针结构
         /// </summary>
         /// <param name="moduleName"></param>
@@ -40,8 +35,8 @@ namespace FastWin32.Memory
         /// <param name="offset"></param>
         public Pointer(string moduleName, int moduleOffset, int[] offset)
         {
-            if (string.IsNullOrEmpty(moduleName))
-                throw new ArgumentException();
+            if (string.IsNullOrWhiteSpace(moduleName))
+                throw new ArgumentOutOfRangeException();
 
             _mName = moduleName;
             _mOffset = moduleOffset;

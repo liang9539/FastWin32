@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace FastWin32.Diagnostics {
+namespace FastWin32.Asm {
     using System;
     
     
@@ -22,14 +22,14 @@ namespace FastWin32.Diagnostics {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Res {
+    internal class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Res() {
+        internal Resources() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace FastWin32.Diagnostics {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("FastWin32.Diagnostics.Res", typeof(Res).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("FastWin32.Asm.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -63,9 +63,9 @@ namespace FastWin32.Diagnostics {
         /// <summary>
         ///   查找 System.Byte[] 类型的本地化资源。
         /// </summary>
-        internal static byte[] DInvoker {
+        internal static byte[] NAsm {
             get {
-                object obj = ResourceManager.GetObject("DInvoker", resourceCulture);
+                object obj = ResourceManager.GetObject("NAsm", resourceCulture);
                 return ((byte[])(obj));
             }
         }

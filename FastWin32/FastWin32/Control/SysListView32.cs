@@ -9,11 +9,6 @@ namespace FastWin32.Control
     public class SysListView32 : Win32Control
     {
         /// <summary>
-        /// 创建一个新的列表视图控件（未完成）
-        /// </summary>
-        public SysListView32() : base() { }
-
-        /// <summary>
         /// 使用已有SysListView32控件实例化SysListView32类
         /// </summary>
         /// <param name="hWnd">控件句柄</param>

@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using static FastWin32.Macro.MinWinDef;
+﻿using static FastWin32.Macro.MinWinDef;
 
 namespace FastWin32.Macro
 {
@@ -14,7 +13,6 @@ namespace FastWin32.Macro
         /// <param name="xPos">X坐标</param>
         /// <param name="yPos">Y坐标</param>
         /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint CombineXY(int xPos, int yPos)
         {
             return unchecked(MakeLong((ushort)xPos, (ushort)yPos));
