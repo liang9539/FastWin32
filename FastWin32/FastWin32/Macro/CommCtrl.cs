@@ -12,16 +12,6 @@ namespace FastWin32.Macro
     {
         #region SysListView32
         /// <summary>
-        /// 获取列表视图控件中Item数量
-        /// </summary>
-        /// <param name="hWnd">控件句柄</param>
-        /// <returns></returns>
-        public static int ListView_GetItemCount(IntPtr hWnd)
-        {
-            return (int)SendMessage(hWnd, LVM_GETITEMCOUNT, 0, 0);
-        }
-
-        /// <summary>
         /// 删除列表视图控件中指定Item
         /// </summary>
         /// <param name="hWnd">控件句柄</param>
@@ -29,7 +19,75 @@ namespace FastWin32.Macro
         /// <returns></returns>
         public static bool ListView_DeleteItem(IntPtr hWnd, int i)
         {
-            return SendMessage(hWnd, LVM_DELETEITEM, checked((uint)i), 0) != 0;
+            return SendMessage(hWnd, LVM_DELETEITEM, (IntPtr)i, IntPtr.Zero) != 0;
+        }
+
+        /// <summary>
+        /// 获取列表视图控件扩展样式
+        /// </summary>
+        /// <param name="hWnd">控件句柄</param>
+        /// <returns></returns>
+        public static ExtendedListViewStyles ListView_GetExtendedListViewStyle(IntPtr hWnd)
+        {
+            return (ExtendedListViewStyles)SendMessage(hWnd, LVM_GETEXTENDEDLISTVIEWSTYLE, IntPtr.Zero, IntPtr.Zero);
+        }
+
+        /// <summary>
+        /// 获取LVITEM
+        /// </summary>
+        /// <param name="hWnd">控件句柄</param>
+        /// <param name="addr">LVITEM结构在列表视图控件所在进程中的地址</param>
+        /// <returns></returns>
+        public static bool ListView_GetItem(IntPtr hWnd, IntPtr addr)
+        {
+            return SendMessage(hWnd, LVM_GETITEM, IntPtr.Zero, addr) != 0;
+        }
+
+        /// <summary>
+        /// 获取列表视图控件中Item数量
+        /// </summary>
+        /// <param name="hWnd">控件句柄</param>
+        /// <returns></returns>
+        public static int ListView_GetItemCount(IntPtr hWnd)
+        {
+            return (int)SendMessage(hWnd, LVM_GETITEMCOUNT, IntPtr.Zero, IntPtr.Zero);
+        }
+
+        /// <summary>
+        /// 获取列表视图控件中Item位置
+        /// </summary>
+        /// <param name="hWnd">控件句柄</param>
+        /// <param name="i">第i个Item</param>
+        /// <param name="addr">Point结构在列表视图控件所在进程中的地址</param>
+        /// <returns></returns>
+        public static bool ListView_GetItemPosition(IntPtr hWnd, int i, IntPtr addr)
+        {
+            return SendMessage(hWnd, LVM_GETITEMPOSITION, (IntPtr)i, addr) != 0;
+        }
+
+        /// <summary>
+        /// 获取指定Item的文本，返回文本长度
+        /// </summary>
+        /// <param name="hWnd">窗口句柄</param>
+        /// <param name="i"></param>
+        /// <param name="addr">远程进程的LVITEM地址</param>
+        /// <param name="cchTextMax"></param>
+        /// <returns></returns>
+        public static int ListView_GetItemText(IntPtr hWnd, int i, IntPtr addr, int cchTextMax)
+        {
+            return (int)SendMessage(hWnd, LVM_GETITEMTEXT, (IntPtr)i, addr);
+        }
+
+        /// <summary>
+        /// 重绘列表视图控件中指定Item
+        /// </summary>
+        /// <param name="hWnd">控件句柄</param>
+        /// <param name="iFirst">索引起始</param>
+        /// <param name="iLast">索引结束</param>
+        /// <returns></returns>
+        public static bool ListView_RedrawItems(IntPtr hWnd, int iFirst, int iLast)
+        {
+            return SendMessage(hWnd, LVM_REDRAWITEMS, (IntPtr)iFirst, (IntPtr)iLast) != 0;
         }
 
         /// <summary>
@@ -42,31 +100,7 @@ namespace FastWin32.Macro
         /// <returns></returns>
         public static bool ListView_SetItemPosition(IntPtr hWnd, int i, int x, int y)
         {
-            return SendMessage(hWnd, LVM_SETITEMPOSITION, checked((uint)i), CombineXY(x, y)) != 0;
-        }
-
-        /// <summary>
-        /// 获取列表视图控件中Item位置
-        /// </summary>
-        /// <param name="hWnd">控件句柄</param>
-        /// <param name="i">第i个Item</param>
-        /// <param name="addr">Point结构在列表视图控件所在进程中的地址</param>
-        /// <returns></returns>
-        public static bool ListView_GetItemPosition(IntPtr hWnd, int i, IntPtr addr)
-        {
-            return SendMessage(hWnd, LVM_GETITEMPOSITION, checked((uint)i), (uint)addr) != 0;
-        }
-
-        /// <summary>
-        /// 重绘列表视图控件中指定Item
-        /// </summary>
-        /// <param name="hWnd">控件句柄</param>
-        /// <param name="iFirst">索引起始</param>
-        /// <param name="iLast">索引结束</param>
-        /// <returns></returns>
-        public static bool ListView_RedrawItems(IntPtr hWnd, int iFirst, int iLast)
-        {
-            return SendMessage(hWnd, LVM_REDRAWITEMS, checked((uint)iFirst), checked((uint)iLast)) != 0;
+            return SendMessage(hWnd, LVM_SETITEMPOSITION, (IntPtr)i, (IntPtr)CombineXY(x, y)) != 0;
         }
 
         /// <summary>
@@ -76,7 +110,7 @@ namespace FastWin32.Macro
         /// <param name="dwExStyle">扩展样式</param>
         public static void ListView_SetExtendedListViewStyle(IntPtr hWnd, ExtendedListViewStyles dwExStyle)
         {
-            SendMessage(hWnd, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, (uint)dwExStyle);
+            SendMessage(hWnd, LVM_SETEXTENDEDLISTVIEWSTYLE, IntPtr.Zero, (IntPtr)dwExStyle);
         }
 
         /// <summary>
@@ -87,17 +121,7 @@ namespace FastWin32.Macro
         /// <param name="dwExStyle">扩展样式</param>
         public static void ListView_SetExtendedListViewStyleEx(IntPtr hWnd, ExtendedListViewStyles dwExMask, ExtendedListViewStyles dwExStyle)
         {
-            SendMessage(hWnd, LVM_SETEXTENDEDLISTVIEWSTYLE, (uint)dwExMask, (uint)dwExStyle);
-        }
-
-        /// <summary>
-        /// 获取列表视图控件扩展样式
-        /// </summary>
-        /// <param name="hWnd">控件句柄</param>
-        /// <returns></returns>
-        public static ExtendedListViewStyles ListView_GetExtendedListViewStyle(IntPtr hWnd)
-        {
-            return (ExtendedListViewStyles)SendMessage(hWnd, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
+            SendMessage(hWnd, LVM_SETEXTENDEDLISTVIEWSTYLE, (IntPtr)dwExMask, (IntPtr)dwExStyle);
         }
         #endregion
 
@@ -110,7 +134,7 @@ namespace FastWin32.Macro
         /// <returns></returns>
         public static bool DateTime_GetSystemtime(IntPtr hWnd, IntPtr lpSysTime)
         {
-            return SendMessage(hWnd, DTM_GETSYSTEMTIME, 0, (uint)lpSysTime) != GDT_ERROR;
+            return SendMessage(hWnd, DTM_GETSYSTEMTIME, IntPtr.Zero, lpSysTime) != GDT_ERROR;
         }
 
         /// <summary>
@@ -122,7 +146,7 @@ namespace FastWin32.Macro
         /// <returns></returns>
         public static bool DateTime_SetSystemtime(IntPtr hWnd, uint flag, IntPtr lpSysTime)
         {
-            return SendMessage(hWnd, DTM_SETSYSTEMTIME, flag, (uint)lpSysTime) != 0;
+            return SendMessage(hWnd, DTM_SETSYSTEMTIME, (IntPtr)flag, lpSysTime) != 0;
         }
         #endregion
     }

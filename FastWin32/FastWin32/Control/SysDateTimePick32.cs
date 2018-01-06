@@ -21,7 +21,7 @@ namespace FastWin32.Control
         /// <returns></returns>
         public bool GetSystemTime(out SYSTEMTIME systemTime)
         {
-            return Util.ReadStructRemote(_handle, out systemTime, (IntPtr addr) => DateTime_GetSystemtime(_handle, addr));
+            return Util.ReadStructRemote(Handle, out systemTime, (IntPtr hProcess, IntPtr addr) => DateTime_GetSystemtime(Handle, addr), null);
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace FastWin32.Control
         /// <returns></returns>
         public bool SetSystemTime(SYSTEMTIME systemTime)
         {
-            return Util.WriteStructRemote(_handle, systemTime, (IntPtr addr) => DateTime_SetSystemtime(_handle, NativeMethods.GDT_VALID, addr));
+            return Util.WriteStructRemote(Handle, ref systemTime, null, (IntPtr hProcess, IntPtr addr) => DateTime_SetSystemtime(Handle, NativeMethods.GDT_VALID, addr));
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace FastWin32.Control
         /// <returns></returns>
         public bool Clear()
         {
-            return DateTime_SetSystemtime(_handle, NativeMethods.GDT_NONE, IntPtr.Zero);
+            return DateTime_SetSystemtime(Handle, NativeMethods.GDT_NONE, IntPtr.Zero);
         }
     }
 }

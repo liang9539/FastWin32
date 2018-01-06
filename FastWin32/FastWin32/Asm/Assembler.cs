@@ -9,7 +9,7 @@ using SysProcess = System.Diagnostics.Process;
 namespace FastWin32.Asm
 {
     /// <summary>
-    /// 汇编器，提供编译与1反编译支持
+    /// 汇编器，提供编译与反编译支持
     /// </summary>
     public static class Assembler
     {
@@ -33,25 +33,11 @@ namespace FastWin32.Asm
         /// 反汇编器路径
         /// </summary>
         internal static string _ndisasmPath;
-        /// <summary>
-        /// 最后一次编译错误
-        /// </summary>
-        internal static string _lastCompileError;
-
-        /// <summary>
-        /// 汇编器路径
-        /// </summary>
-        public static string NasmPath => _nasmPath;
-
-        /// <summary>
-        /// 反汇编器路径
-        /// </summary>
-        public static string NdisasmPath => _ndisasmPath;
 
         /// <summary>
         /// 最后一次编译错误
         /// </summary>
-        public static string LastCompileError => _lastCompileError;
+        public static string LastCompileError { get; internal set; }
 
         /// <summary>
         /// 第一次访问时解压资源
@@ -155,7 +141,7 @@ namespace FastWin32.Asm
                         //添加到builder
                         builder.Append(Environment.NewLine + "line" + error.Substring(4));
                 }
-                _lastCompileError = builder.ToString();
+                LastCompileError = builder.ToString();
                 throw new AsmCompilerException();
             }
         }

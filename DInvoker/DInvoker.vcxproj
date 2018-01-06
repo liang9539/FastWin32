@@ -23,7 +23,7 @@
     <ProjectGuid>{AA9AEDED-D60D-4F6A-A402-4FC01E09583D}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>DInvoker</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

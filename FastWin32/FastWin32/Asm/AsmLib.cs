@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using FastWin32.Memory;
 using static FastWin32.NativeMethods;
 
@@ -29,7 +24,7 @@ namespace FastWin32.Asm
         }
 
         /// <summary>
-        /// 将机器码写入内存，返回函数指针
+        /// 将机器码写入内存，返回函数指针，如果执行失败。返回 <see cref="IntPtr.Zero"/>
         /// </summary>
         /// <param name="bytes">机器码</param>
         /// <returns></returns>
@@ -42,15 +37,15 @@ namespace FastWin32.Asm
 
             IntPtr pAsm;
 
-            pAsm = MemoryManagement.AllocMemoryInternal((uint)bytes.Length, MemoryProtectionFlags.PAGE_EXECUTE_READ);
+            pAsm = MemoryManagement.AllocMemoryInternal((uint)bytes.Length, PAGE_EXECUTE_READ);
             //分配内存（可执行）
-            if (!MemoryRW.WriteBytesInternal(CURRENT_PROCESS, pAsm, bytes))
-                throw new Win32Exception();
+            if (!MemoryIO.WriteBytesInternal(CURRENT_PROCESS, pAsm, bytes))
+                return IntPtr.Zero;
             return pAsm;
         }
 
         /// <summary>
-        /// 将汇编指令写入内存，返回函数指针
+        /// 将汇编指令写入内存，返回函数指针，如果执行失败。返回 <see cref="IntPtr.Zero"/>
         /// </summary>
         /// <param name="opcodes">汇编指令</param>
         /// <returns></returns>
@@ -65,9 +60,9 @@ namespace FastWin32.Asm
         }
 
         /// <summary>
-        /// 将机器码写入内存，返回对应的委托
+        /// 将机器码写入内存，返回对应的委托，如果执行失败。返回空值
         /// </summary>
-        /// <typeparam name="TDelegate"></typeparam>
+        /// <typeparam name="TDelegate">委托</typeparam>
         /// <param name="bytes">机器码</param>
         /// <returns></returns>
         public static TDelegate GetDelegateForAsm<TDelegate>(byte[] bytes)
@@ -77,7 +72,12 @@ namespace FastWin32.Asm
             if (bytes.Length == 0)
                 throw new ArgumentOutOfRangeException();
 
-            return (TDelegate)(object)Marshal.GetDelegateForFunctionPointer(GetFunctionPointerForAsm(bytes), typeof(TDelegate));
+            IntPtr pFunc;
+
+            pFunc = GetFunctionPointerForAsm(bytes);
+            if (pFunc == IntPtr.Zero)
+                return default(TDelegate);
+            return (TDelegate)(object)Marshal.GetDelegateForFunctionPointer(pFunc, typeof(TDelegate));
         }
 
         /// <summary>

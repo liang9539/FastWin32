@@ -1,8 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Runtime.InteropServices;
-using FastWin32.Memory;
-using static FastWin32.NativeMethods;
 
 namespace FastWin32.Asm.Example
 {

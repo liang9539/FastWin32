@@ -13,17 +13,7 @@ namespace FastWin32.Diagnostics
     /// </summary>
     public static class Injector
     {
-        private static byte[] _dInvoker;
-
-        private static byte[] DInvoker
-        {
-            get
-            {
-                if (_dInvoker == null)
-                    _dInvoker = LzmaCompressor.Decompress(Resources.DInvoker);
-                return _dInvoker;
-            }
-        }
+        private readonly static byte[] _invoker = LzmaCompressor.Decompress(Resources.DInvoker);
 
         /// <summary>
         /// Dll注入
@@ -33,20 +23,23 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         public static bool Inject(uint processId, string dllPath)
         {
-            if (string.IsNullOrWhiteSpace(dllPath))
+            if (string.IsNullOrEmpty(dllPath))
                 throw new ArgumentException();
             if (!File.Exists(dllPath))
                 throw new DllNotFoundException();
 
             IntPtr hProcess;
+            bool is64;
+            bool isAssembly;
+            string clrVer;
 
-            hProcess = OpenProcess(ProcAccessFlags.PROCESS_CREATE_THREAD | ProcAccessFlags.PROCESS_VM_OPERATION | ProcAccessFlags.PROCESS_VM_READ | ProcAccessFlags.PROCESS_VM_WRITE | ProcAccessFlags.PROCESS_QUERY_INFORMATION, false, processId);
+            hProcess = OpenProcess(PROCESS_CREATE_THREAD | PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_QUERY_INFORMATION, false, processId);
             //打开进程
             if (hProcess == IntPtr.Zero)
                 return false;
             dllPath = Path.GetFullPath(dllPath);
             //获取绝对路径
-            IsAssembly(dllPath, out bool isAssembly, out string clrVer);
+            IsAssembly(dllPath, out isAssembly, out clrVer);
             //获取是否程序集
             if (isAssembly)
             {
@@ -59,12 +52,14 @@ namespace FastWin32.Diagnostics
                 //创建临时文件夹
                 File.Copy(dllPath, Path.Combine(tempDir, "netdll.dll"), true);
                 //复制.Net Dll到rootDir并重命名
-                if (ProcessX.Is64ProcessInternal(hProcess))
+                if (!Process.Is64ProcessInternal(hProcess, out is64))
+                    return false;
+                if (is64)
                 {
                     if (!Environment.Is64BitProcess)
                         throw new NotSupportedException("注入64位进程但当前进程为32位");
                     bytDInvoker = new byte[18944];
-                    Buffer.BlockCopy(DInvoker, 14336, bytDInvoker, 0, bytDInvoker.Length);
+                    Buffer.BlockCopy(_invoker, 14336, bytDInvoker, 0, bytDInvoker.Length);
                     //读取64位DInvoker
                 }
                 else
@@ -72,7 +67,7 @@ namespace FastWin32.Diagnostics
                     if (Environment.Is64BitProcess)
                         throw new NotSupportedException("注入32位进程但当前进程为64位");
                     bytDInvoker = new byte[14336];
-                    Buffer.BlockCopy(DInvoker, 0, bytDInvoker, 0, bytDInvoker.Length);
+                    Buffer.BlockCopy(_invoker, 0, bytDInvoker, 0, bytDInvoker.Length);
                     //读取32位DInvoker
                 }
                 if (clrVer == "v4.0.30319")
@@ -108,12 +103,12 @@ namespace FastWin32.Diagnostics
             //获取LoadLibrary的函数地址
             bytDllPath = Encoding.Unicode.GetBytes(dllPath);
             //以字节数组形式表示Dll的路径
-            pDllPathRemote = MemoryManagement.AllocMemoryInternal(hProcess, (uint)bytDllPath.Length, MemoryProtectionFlags.PAGE_EXECUTE_READ);
+            pDllPathRemote = MemoryManagement.AllocMemoryInternal(hProcess, (uint)bytDllPath.Length, PAGE_EXECUTE_READ);
             //在远程进程中，指向Dll路径的指针
-            if (!MemoryRW.WriteBytesInternal(hProcess, pDllPathRemote, bytDllPath))
+            if (!MemoryIO.WriteBytesInternal(hProcess, pDllPathRemote, bytDllPath))
                 //写入Dll路径失败
                 return false;
-            hThread = CreateRemoteThread(hProcess, IntPtr.Zero, 0, pFunc, pDllPathRemote, ThreadCreationFlags.Zero, null);
+            hThread = CreateRemoteThread(hProcess, null, 0, pFunc, pDllPathRemote, CREATE_RUNNING, null);
             //创建远程线程
             if (hThread == IntPtr.Zero)
                 //创建远程线程失败
@@ -124,7 +119,7 @@ namespace FastWin32.Diagnostics
             //关闭句柄
             return true;
         }
-        
+
         /// <summary>
         /// 判断是否为程序集，如果是，输出CLR版本
         /// </summary>

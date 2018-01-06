@@ -11,37 +11,37 @@ namespace FastWin32.Memory
     {
         //TODO 分配内存 释放内存 加载文件到内存
 
-        #region MemoryProtectionFlags生成器
+        #region uint生成器
         /// <summary>
         /// 所有内存保护选项
         /// </summary>
-        private const MemoryProtectionFlags AllMemoryProtectionFlags =
-            MemoryProtectionFlags.PAGE_EXECUTE_READ |
-            MemoryProtectionFlags.PAGE_EXECUTE_READWRITE |
-            MemoryProtectionFlags.PAGE_READONLY |
-            MemoryProtectionFlags.PAGE_READWRITE;
+        private const uint AllMemoryProtectionFlags =
+            PAGE_EXECUTE_READ |
+            PAGE_EXECUTE_READWRITE |
+            PAGE_READONLY |
+            PAGE_READWRITE;
 
         /// <summary>
-        /// 根据提供选项生成对应的MemoryProtectionFlags
+        /// 根据提供选项生成对应的内存保护标识
         /// </summary>
         /// <param name="writable">可写</param>
         /// <param name="executable">可执行</param>
         /// <returns></returns>
-        private static MemoryProtectionFlags ProtectionFlagsGenerator(bool writable, bool executable)
+        private static uint ProtectionFlagsGenerator(bool writable, bool executable)
         {
-            MemoryProtectionFlags writableFlags;
-            MemoryProtectionFlags executableFlags;
+            uint writableFlags;
+            uint executableFlags;
 
             writableFlags =
-                MemoryProtectionFlags.PAGE_EXECUTE_READWRITE |
-                MemoryProtectionFlags.PAGE_READWRITE;
+                PAGE_EXECUTE_READWRITE |
+                PAGE_READWRITE;
             //可写
             if (!writable)
                 //如果不可写
                 writableFlags = AllMemoryProtectionFlags ^ writableFlags;
             executableFlags =
-                MemoryProtectionFlags.PAGE_EXECUTE_READ |
-                MemoryProtectionFlags.PAGE_EXECUTE_READWRITE;
+                PAGE_EXECUTE_READ |
+                PAGE_EXECUTE_READWRITE;
             //可执行
             if (!executable)
                 //如果不可执行
@@ -116,7 +116,7 @@ namespace FastWin32.Memory
         /// <returns>分配得到的内存所在地址</returns>
         internal static IntPtr AllocMemoryInternal(uint size)
         {
-            return VirtualAlloc(IntPtr.Zero, size, MemoryAllocationFlags.MEM_COMMIT | MemoryAllocationFlags.MEM_RESERVE, MemoryProtectionFlags.PAGE_READWRITE);
+            return VirtualAlloc(IntPtr.Zero, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         }
 
         /// <summary>
@@ -125,9 +125,9 @@ namespace FastWin32.Memory
         /// <param name="size">要分配内存的大小</param>
         /// <param name="flags">内存保护选项</param>
         /// <returns>分配得到的内存所在地址</returns>
-        internal static IntPtr AllocMemoryInternal(uint size, MemoryProtectionFlags flags)
+        internal static IntPtr AllocMemoryInternal(uint size, uint flags)
         {
-            return VirtualAlloc(IntPtr.Zero, size, MemoryAllocationFlags.MEM_COMMIT | MemoryAllocationFlags.MEM_RESERVE, flags);
+            return VirtualAlloc(IntPtr.Zero, size, MEM_COMMIT | MEM_RESERVE, flags);
         }
 
         /// <summary>
@@ -138,7 +138,7 @@ namespace FastWin32.Memory
         /// <returns>分配得到的内存所在地址</returns>
         internal static IntPtr AllocMemoryInternal(IntPtr hProcess, uint size)
         {
-            return VirtualAllocEx(hProcess, IntPtr.Zero, size, MemoryAllocationFlags.MEM_COMMIT | MemoryAllocationFlags.MEM_RESERVE, MemoryProtectionFlags.PAGE_READWRITE);
+            return VirtualAllocEx(hProcess, IntPtr.Zero, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         }
 
         /// <summary>
@@ -148,9 +148,9 @@ namespace FastWin32.Memory
         /// <param name="size">要分配内存的大小</param>
         /// <param name="flags">内存保护选项</param>
         /// <returns>分配得到的内存所在地址</returns>
-        internal static IntPtr AllocMemoryInternal(IntPtr hProcess, uint size, MemoryProtectionFlags flags)
+        internal static IntPtr AllocMemoryInternal(IntPtr hProcess, uint size, uint flags)
         {
-            return VirtualAllocEx(hProcess, IntPtr.Zero, size, MemoryAllocationFlags.MEM_COMMIT | MemoryAllocationFlags.MEM_RESERVE, flags);
+            return VirtualAllocEx(hProcess, IntPtr.Zero, size, MEM_COMMIT | MEM_RESERVE, flags);
         }
         #endregion
 
@@ -228,7 +228,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         internal static bool FreeMemoryInternal(IntPtr addr)
         {
-            return VirtualFree(addr, 0, MemoryFreeFlag.MEM_RELEASE);
+            return VirtualFree(addr, 0, MEM_RELEASE);
         }
 
         /// <summary>
@@ -238,7 +238,7 @@ namespace FastWin32.Memory
         /// <param name="size">要释放内存的大小</param>
         internal static bool FreeMemoryInternal(IntPtr addr, uint size)
         {
-            return VirtualFree(addr, size, MemoryFreeFlag.MEM_DECOMMIT);
+            return VirtualFree(addr, size, MEM_DECOMMIT);
         }
 
         /// <summary>
@@ -249,7 +249,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         internal static bool FreeMemoryInternal(IntPtr hProcess, IntPtr addr)
         {
-            return VirtualFreeEx(hProcess, addr, 0, MemoryFreeFlag.MEM_RELEASE);
+            return VirtualFreeEx(hProcess, addr, 0, MEM_RELEASE);
         }
 
         /// <summary>
@@ -260,7 +260,7 @@ namespace FastWin32.Memory
         /// <param name="size">要释放内存的大小</param>
         internal static bool FreeMemoryInternal(IntPtr hProcess, IntPtr addr, uint size)
         {
-            return VirtualFreeEx(hProcess, addr, size, MemoryFreeFlag.MEM_DECOMMIT);
+            return VirtualFreeEx(hProcess, addr, size, MEM_DECOMMIT);
         }
         #endregion
     }

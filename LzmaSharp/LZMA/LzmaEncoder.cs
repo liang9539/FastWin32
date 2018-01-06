@@ -704,7 +704,8 @@ namespace LzmaSharp.Compression.LZMA
                 cur++;
                 if (cur == lenEnd)
                     return Backward(out backRes, cur);
-                ReadMatchDistances(out uint newLen, out numDistancePairs);
+                uint newLen;
+                ReadMatchDistances(out newLen, out numDistancePairs);
                 if (newLen >= _numFastBytes)
                 {
                     _numDistancePairs = numDistancePairs;
@@ -1100,7 +1101,9 @@ namespace LzmaSharp.Compression.LZMA
                     return;
                 }
 
-                ReadMatchDistances(out uint len, out uint numDistancePairs);
+                uint len;
+                uint numDistancePairs;
+                ReadMatchDistances(out len, out numDistancePairs);
                 uint posState = (uint)(nowPos64) & _posStateMask;
                 _isMatch[(_state.Index << Base.kNumPosStatesBitsMax) + posState].Encode(_rangeEncoder, 0);
                 _state.UpdateChar();
@@ -1117,7 +1120,8 @@ namespace LzmaSharp.Compression.LZMA
             }
             while (true)
             {
-                uint len = GetOptimum((uint)nowPos64, out uint pos);
+                uint pos;
+                uint len = GetOptimum((uint)nowPos64, out pos);
 
                 uint posState = ((uint)nowPos64) & _posStateMask;
                 uint complexState = (_state.Index << Base.kNumPosStatesBitsMax) + posState;
@@ -1293,7 +1297,10 @@ namespace LzmaSharp.Compression.LZMA
                 SetStreams(inStream, outStream, inSize, outSize);
                 while (true)
                 {
-                    CodeOneBlock(out long processedInSize, out long processedOutSize, out bool finished);
+                    long processedInSize;
+                    long processedOutSize;
+                    bool finished;
+                    CodeOneBlock(out processedInSize, out processedOutSize, out finished);
                     if (finished)
                         return;
                 }

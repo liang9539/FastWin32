@@ -11,22 +11,7 @@ namespace FastWin32.Control
         /// <summary>
         /// 控件句柄
         /// </summary>
-        protected IntPtr _handle;
-
-        /// <summary>
-        /// 启用Unicode编码（针对部分方法有效）
-        /// </summary>
-        protected static bool _unicode = true;
-
-        /// <summary>
-        /// 控件句柄
-        /// </summary>
-        public IntPtr Handle => _handle;
-
-        /// <summary>
-        /// 启用Unicode编码（默认为是）（针对部分方法有效）
-        /// </summary>
-        public bool Unicode { get => _unicode; set => _unicode = value; }
+        public IntPtr Handle { get; }
 
         /// <summary>
         /// 操作已有Win32控件
@@ -35,11 +20,9 @@ namespace FastWin32.Control
         protected Win32Control(IntPtr hWnd)
         {
             if (hWnd == IntPtr.Zero || hWnd == INVALID_HANDLE_VALUE || !IsWindow(hWnd))
-            {
-                throw new ArgumentException();
-            }
+                throw new ArgumentException("无效的Win32控件窗口句柄");
 
-            _handle = hWnd;
+            Handle = hWnd;
         }
     }
 }

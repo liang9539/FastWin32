@@ -27,6 +27,18 @@
         /// <summary>
         /// 读取{0}
         /// </summary>
+        /// <param name="processInfo">进程信息</param>
+        /// <param name="addr">地址</param>
+        /// <param name="value">值</param>
+        /// <returns></returns>
+        internal static unsafe bool Read{1}Internal(ProcessInfo processInfo, IntPtr addr, out {2} value)
+        {
+            return ReadProcessMemory(processInfo.Handle, addr, out value, {3}, null);
+        }
+        
+        /// <summary>
+        /// 读取{0}
+        /// </summary>
         /// <param name="hProcess">进程句柄</param>
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
@@ -60,6 +72,18 @@
         public static bool Write{1}(uint processId, Pointer p, {2} value)
         {
             return TemplateOfWrite(processId, p, (IntPtr hProcess, IntPtr addrCallback) => Write{1}Internal(hProcess, addrCallback, value));
+        }
+        
+        /// <summary>
+        /// 写入{0}
+        /// </summary>
+        /// <param name="processInfo">进程信息</param>
+        /// <param name="addr">地址</param>
+        /// <param name="value">值</param>
+        /// <returns></returns>
+        internal static unsafe bool Write{1}Internal(ProcessInfo processInfo, IntPtr addr, {2} value)
+        {
+            return WriteProcessMemory(processInfo.Handle, addr, ref value, {3}, null);
         }
         
         /// <summary>

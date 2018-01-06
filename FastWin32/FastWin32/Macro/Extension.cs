@@ -15,7 +15,7 @@ namespace FastWin32.Macro
         /// <returns></returns>
         public static uint CombineXY(int xPos, int yPos)
         {
-            return unchecked(MakeLong((ushort)xPos, (ushort)yPos));
+            return MakeLong((ushort)xPos, (ushort)yPos);
         }
     }
 }

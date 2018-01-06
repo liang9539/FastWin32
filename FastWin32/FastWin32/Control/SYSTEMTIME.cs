@@ -6,7 +6,7 @@ namespace FastWin32.Control
     /// <summary>
     /// 日期
     /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct SYSTEMTIME : IWin32ControlStruct
     {
         /// <summary>
@@ -129,9 +129,7 @@ namespace FastWin32.Control
         public unsafe void* ToPointer()
         {
             fixed (void* p = &this)
-            {
                 return p;
-            }
         }
 
         /// <summary>

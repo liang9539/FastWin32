@@ -1,31 +1,32 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using static FastWin32.NativeMethods;
 
-namespace FastWin32.Hook
+namespace FastWin32.Hook.Method
 {
     /// <summary>
-    /// 提供对ApiHook类的一些封装，实现快速HookAPI
+    /// 提供对 <see cref="LocalHook"/> 与 <see cref="RemoteHook"/> 类的一些封装，实现快速Hook方法
     /// </summary>
-    public static class QuickApiHook
+    public static class QuickMethodHook
     {
         /// <summary>
-        /// 杀死函数，让函数不执行任何动作,如果函数有返回值，此时的返回值是无效的，不可信的
+        /// 杀死函数，让函数不执行任何动作
         /// </summary>
         /// <param name="moduleName">模块名</param>
         /// <param name="apiName">函数名</param>
         /// <returns></returns>
         public static bool Kill(string moduleName, string apiName)
         {
-            return Kill(ApiHook.GetProcAddressInternal(moduleName, apiName));
+            if (moduleName == null || apiName == null)
+                throw new ArgumentNullException();
+            if (moduleName.Length == 0 || apiName.Length == 0)
+                throw new ArgumentOutOfRangeException();
+
+            return Kill(Diagnostics.Module.GetFuncAddressInternal(moduleName, apiName));
         }
 
         /// <summary>
-        /// 杀死方法，让方法不执行任何动作,如果方法有返回值，此时的返回值是无效的，不可信的
+        /// 杀死方法，让方法不执行任何动作
         /// </summary>
         /// <param name="methodInfo">方法信息</param>
         /// <returns></returns>
@@ -35,7 +36,7 @@ namespace FastWin32.Hook
         }
 
         /// <summary>
-        /// 杀死函数，让函数不执行任何动作,如果函数有返回值，此时的返回值是无效的，不可信的
+        /// 杀死函数，让函数不执行任何动作
         /// </summary>
         /// <param name="entry">函数入口地址</param>
         /// <returns></returns>

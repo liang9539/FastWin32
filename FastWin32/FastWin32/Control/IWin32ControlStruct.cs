@@ -3,7 +3,7 @@
     /// <summary>
     /// 表示一个Win32控件使用的结构体
     /// </summary>
-    interface IWin32ControlStruct
+    internal interface IWin32ControlStruct
     {
         /// <summary>
         /// 结构体在非托管内存中的大小

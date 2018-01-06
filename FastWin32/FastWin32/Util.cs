@@ -15,7 +15,7 @@ namespace FastWin32
         /// <returns></returns>
         public static IntPtr OpenProcessRW(uint processId)
         {
-            return OpenProcess(ProcAccessFlags.PROCESS_VM_OPERATION | ProcAccessFlags.PROCESS_VM_READ | ProcAccessFlags.PROCESS_VM_WRITE, false, processId);
+            return OpenProcess(PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE, false, processId);
         }
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace FastWin32
         /// <returns></returns>
         public static IntPtr OpenProcessRWQuery(uint processId)
         {
-            return OpenProcess(ProcAccessFlags.PROCESS_VM_OPERATION | ProcAccessFlags.PROCESS_VM_READ | ProcAccessFlags.PROCESS_VM_WRITE | ProcAccessFlags.PROCESS_QUERY_INFORMATION, false, processId);
+            return OpenProcess(PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_QUERY_INFORMATION, false, processId);
         }
     }
 }
