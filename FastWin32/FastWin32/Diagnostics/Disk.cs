@@ -17,28 +17,14 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         public static IList<DriveInfo> EnumAllVolumes()
         {
-            IList<string> guids;
-            StringBuilder letter;
-            IList<DriveInfo> volumesList;
+            string[] letters;
+            IList<DriveInfo> driveInfosList;
 
-            guids = EnumAllVolumesByVolumeName();
-            if (guids == null)
-                return null;
-            letter = new StringBuilder(60);
-            volumesList = new List<DriveInfo>(guids.Count);
-            foreach (string guid in guids)
-            {
-                //volumesList.Add(new DriveInfo(letter.ToString()));
-            }
-            return volumesList;
-            //string[] letters;
-            //IList<DriveInfo> driveInfosList;
-
-            //letters = Environment.GetLogicalDrives();
-            //driveInfosList = new List<DriveInfo>(letters.Length);
-            //foreach (string letter in letters)
-            //    driveInfosList.Add(new DriveInfo(letter));
-            //return driveInfosList;
+            letters = Environment.GetLogicalDrives();
+            driveInfosList = new List<DriveInfo>(letters.Length);
+            foreach (string letter in letters)
+                driveInfosList.Add(new DriveInfo(letter));
+            return driveInfosList;
         }
 
         /// <summary>
@@ -48,29 +34,39 @@ namespace FastWin32.Diagnostics
         public static IList<string> EnumAllVolumesByVolumeName()
         {
             IntPtr hFindVolume;
-            StringBuilder volume;
-            IList<string> volumesList;
+            StringBuilder volumeName;
+            IList<string> volumeNamesList;
 
-            volume = new StringBuilder(60);
-            hFindVolume = FindFirstVolume(volume, 60);
+            volumeName = new StringBuilder(60);
+            hFindVolume = FindFirstVolume(volumeName, 60);
             if (hFindVolume == IntPtr.Zero)
                 return null;
-            volumesList = new List<string>();
+            volumeNamesList = new List<string>();
             do
             {
-                volumesList.Add(volume.ToString());
-            } while (FindNextVolume(hFindVolume, volume, 60));
-            return volumesList;
+                volumeNamesList.Add(volumeName.ToString());
+            } while (FindNextVolume(hFindVolume, volumeName, 60));
+            return volumeNamesList;
         }
 
         /// <summary>
-        /// 
+        /// 获取卷Guid路径对应的路径（用盘符表示，例如C:\），若无盘符，返回<see langword="null"/>
         /// </summary>
         /// <param name="volumeName">用Guid表示的分区根目录</param>
         /// <returns></returns>
-        public static string TryGetVolumePath(string volumeName)
+        public static unsafe string GetVolumePath(string volumeName)
         {
+            if (string.IsNullOrEmpty(volumeName))
+                throw new ArgumentNullException(nameof(volumeName) + "不能为空");
 
+            StringBuilder path;
+            uint nChars;
+
+            path = new StringBuilder(10);
+            if (GetVolumePathNamesForVolumeName(volumeName, path, 10, &nChars) && nChars > 1)
+                return path.ToString();
+            else
+                return null;
         }
     }
 }

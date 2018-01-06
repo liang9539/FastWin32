@@ -8,7 +8,7 @@ using static FastWin32.NativeMethods;
 namespace FastWin32.Diagnostics
 {
     /// <summary>
-    /// 可移动磁盘插入/弹出
+    /// 可移动磁盘插入/弹出，可调用<see cref="Disk.GetVolumePath"/>将VolumeName转换为VolumePath
     /// </summary>
     /// <param name="volumeName">用Guid表示的分区根目录</param>
     public delegate void RemovableDiskEventHandler(string volumeName);
@@ -34,12 +34,12 @@ namespace FastWin32.Diagnostics
         private static Thread _monitorThread;
 
         /// <summary>
-        /// 可移动磁盘插入事件
+        /// 可移动磁盘插入事件，可调用<see cref="Disk.GetVolumePath"/>将VolumeName转换为VolumePath
         /// </summary>
         public static event RemovableDiskEventHandler RemovableDiskArrivaled;
 
         /// <summary>
-        /// 可移动磁盘弹出事件
+        /// 可移动磁盘弹出事件，可调用<see cref="Disk.GetVolumePath"/>将VolumeName转换为VolumePath
         /// </summary>
         public static event RemovableDiskEventHandler RemovableDiskMoveCompleted;
 
@@ -63,12 +63,12 @@ namespace FastWin32.Diagnostics
         /// </summary>
         private static void MonitorLoop()
         {
-            IList<string> oldRemovableDisks;
+            IList<string> oldRemovableVolumes;
 
-            oldRemovableDisks = null;
+            oldRemovableVolumes = null;
             while (true)
             {
-                Monitor(ref oldRemovableDisks);
+                Monitor(ref oldRemovableVolumes);
                 Thread.Sleep(200);
             }
         }

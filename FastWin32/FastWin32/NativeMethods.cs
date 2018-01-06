@@ -1424,6 +1424,18 @@ namespace FastWin32
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "GetVolumePathNameW", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GetVolumePathName(string lpszFileName, StringBuilder lpszVolumePathName, uint cchBufferLength);
+
+        /// <summary>
+        /// 检索指定卷的驱动器号和已装入文件夹路径的列表
+        /// </summary>
+        /// <param name="lpszVolumeName">卷的卷Guid路径。卷Guid路径的格式为"\\?\Volume{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}\"</param>
+        /// <param name="lpszVolumePathNames">指向缓冲区的指针，该缓冲区接收驱动器号和挂载的文件夹路径列表。该列表是由一个额外的NULL字符终止的以空字符结尾的字符串的数组。如果缓冲区不足以保存完整列表，则缓冲区将尽可能多地保留列表。</param>
+        /// <param name="cchBufferLength">TCHAR中的lpszVolumePathNames缓冲区 的长度，包括所有NULL字符。</param>
+        /// <param name="lpcchReturnLength">如果调用成功，则此参数是复制到lpszVolumePathNames缓冲区的TCHAR数量。否则，这个参数是TCHARs中保存完整列表所需的缓冲区的大小。</param>
+        /// <returns></returns>
+        [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "GetVolumePathNamesForVolumeNameW", ExactSpelling = true, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static unsafe extern bool GetVolumePathNamesForVolumeName(string lpszVolumeName, StringBuilder lpszVolumePathNames, uint cchBufferLength,  uint* lpcchReturnLength);
         #endregion
 
         #region Window Functions
