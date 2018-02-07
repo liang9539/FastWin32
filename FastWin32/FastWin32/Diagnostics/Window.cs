@@ -11,9 +11,9 @@ namespace FastWin32.Diagnostics
         /// <summary>
         /// 枚举窗口回调函数，继续枚举返回true，否则返回false
         /// </summary>
-        /// <param name="hWnd">窗口句柄</param>
+        /// <param name="windowHandle">窗口句柄</param>
         /// <returns></returns>
-        public delegate bool EnumWindowsCallback(IntPtr hWnd);
+        public delegate bool EnumWindowsCallback(IntPtr windowHandle);
 
         /// <summary>
         /// 获取包含桌面ListView的句柄
@@ -30,13 +30,13 @@ namespace FastWin32.Diagnostics
             if (Environment.OSVersion.Version.Major >= 6)
             {
                 //Vista及以上        
-                NativeMethods.EnumWindows((hWnd, lParam) =>
+                NativeMethods.EnumWindows((windowHandle, lParam) =>
                 {
-                    shell = FindWindowEx(hWnd, IntPtr.Zero, "SHELLDLL_DefView", null);
+                    shell = FindWindowEx(windowHandle, IntPtr.Zero, "SHELLDLL_DefView", null);
                     if (shell != IntPtr.Zero)
                     {
                         //如果当前窗口存在类名为SHELLDLL_DefView的子窗口
-                        workerW = FindWindowEx(IntPtr.Zero, hWnd, "WorkerW", null);
+                        workerW = FindWindowEx(IntPtr.Zero, windowHandle, "WorkerW", null);
                         return false;
                     }
                     return true;
@@ -56,29 +56,25 @@ namespace FastWin32.Diagnostics
         /// <summary>
         /// 将窗口置顶并激活（单次，非永久），非直接调用Win32API SetForegroundWindow，成功率高
         /// </summary>
-        /// <param name="hWnd">窗口句柄</param>
-        public static void SetForegroundWindow(IntPtr hWnd)
+        /// <param name="windowHandle">窗口句柄</param>
+        public static unsafe void SetForegroundWindow(IntPtr windowHandle)
         {
-            if (!IsWindow(hWnd))
+            if (!IsWindow(windowHandle))
                 throw new ArgumentException("无效窗口句柄");
 
-            IntPtr hForeWnd;
-            uint processId;
-            uint idAttach;
-            uint idAttachTo;
+            uint currentThreadId;
+            uint foregroundThreadId;
 
-            hForeWnd = GetForegroundWindow();
-            //获取顶端窗口
-            idAttach = GetCurrentThreadId();
+            currentThreadId = GetCurrentThreadId();
             //获取当前线程ID
-            idAttachTo = GetWindowThreadProcessId(hForeWnd, out processId);
+            foregroundThreadId = GetWindowThreadProcessId(GetForegroundWindow(), null);
             //获取要附加到的线程的ID
-            AttachThreadInput(idAttach, idAttachTo, true);
+            AttachThreadInput(currentThreadId, foregroundThreadId, true);
             //附加到线程
-            NativeMethods.SetForegroundWindow(hWnd);
-            SetActiveWindow(hWnd);
-            SetFocus(hWnd);
-            AttachThreadInput(idAttach, idAttachTo, false);
+            NativeMethods.SetForegroundWindow(windowHandle);
+            SetActiveWindow(windowHandle);
+            SetFocus(windowHandle);
+            AttachThreadInput(currentThreadId, foregroundThreadId, false);
             //分离
         }
 
@@ -96,14 +92,14 @@ namespace FastWin32.Diagnostics
         /// <summary>
         /// 查找窗口
         /// </summary>
-        /// <param name="hParentWnd">父窗口句柄</param>
-        /// <param name="hAfterWnd">从此窗口之后开始查找（此窗口必须为父窗口的直接子窗口）</param>
+        /// <param name="parentWindowHandle">父窗口句柄</param>
+        /// <param name="afterWindowHandle">从此窗口之后开始查找（此窗口必须为父窗口的直接子窗口）</param>
         /// <param name="className">窗口类名</param>
         /// <param name="windowName">窗口标题</param>
         /// <returns></returns>
-        public static IntPtr FindWindow(IntPtr hParentWnd, IntPtr hAfterWnd, string className, string windowName)
+        public static IntPtr FindWindow(IntPtr parentWindowHandle, IntPtr afterWindowHandle, string className, string windowName)
         {
-            return FindWindowEx(hParentWnd, hAfterWnd, className, windowName);
+            return FindWindowEx(parentWindowHandle, afterWindowHandle, className, windowName);
         }
 
         /// <summary>
@@ -116,21 +112,21 @@ namespace FastWin32.Diagnostics
             if (callback == null)
                 throw new ArgumentNullException();
 
-            return NativeMethods.EnumWindows((hWnd, lParam) => callback(hWnd), IntPtr.Zero);
+            return NativeMethods.EnumWindows((windowHandle, lParam) => callback(windowHandle), IntPtr.Zero);
         }
 
         /// <summary>
         /// 枚举所有子窗口
         /// </summary>
-        /// <param name="hWndParent">父窗口</param>
+        /// <param name="windowHandleParent">父窗口</param>
         /// <param name="callback">查找到窗口时的回调函数</param>
         /// <returns></returns>
-        public static bool EnumChildWindows(IntPtr hWndParent, EnumWindowsCallback callback)
+        public static bool EnumChildWindows(IntPtr windowHandleParent, EnumWindowsCallback callback)
         {
             if (callback == null)
                 throw new ArgumentNullException();
 
-            return NativeMethods.EnumChildWindows(hWndParent, (hWnd, lParam) => callback(hWnd), IntPtr.Zero);
+            return NativeMethods.EnumChildWindows(windowHandleParent, (windowHandle, lParam) => callback(windowHandle), IntPtr.Zero);
         }
     }
 }

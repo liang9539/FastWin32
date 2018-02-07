@@ -85,16 +85,16 @@
 //            if (moduleName.Length == 0 || procName.Length == 0)
 //                throw new ArgumentOutOfRangeException();
 
-//            IntPtr hModule;
-//            IntPtr pFunc;
+//            IntPtr moduleHandle;
+//            IntPtr pFunction;
 
-//            hModule = GetModuleHandle(moduleName);
-//            if (hModule == IntPtr.Zero)
+//            moduleHandle = GetModuleHandle(moduleName);
+//            if (moduleHandle == IntPtr.Zero)
 //                throw new Win32Exception();
-//            pFunc = GetProcAddress(hModule, procName);
-//            if (pFunc == IntPtr.Zero)
+//            pFunction = GetProcAddress(moduleHandle, procName);
+//            if (pFunction == IntPtr.Zero)
 //                throw new Win32Exception();
-//            return pFunc;
+//            return pFunction;
 //        }
 
 //        /// <summary>

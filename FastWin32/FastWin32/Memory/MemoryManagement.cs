@@ -1,6 +1,5 @@
 ﻿using System;
 using static FastWin32.NativeMethods;
-using static FastWin32.Util;
 
 namespace FastWin32.Memory
 {
@@ -9,9 +8,17 @@ namespace FastWin32.Memory
     /// </summary>
     public static class MemoryManagement
     {
-        //TODO 分配内存 释放内存 加载文件到内存
+        /// <summary>
+        /// 打开进程（内存操作）
+        /// </summary>
+        /// <param name="processId">进程ID</param>
+        /// <returns></returns>
+        private static IntPtr OpenProcessVMOperation(uint processId)
+        {
+            return OpenProcess(PROCESS_VM_OPERATION, false, processId);
+        }
 
-        #region uint生成器
+        #region ProtectionFlagsGenerator
         /// <summary>
         /// 所有内存保护选项
         /// </summary>
@@ -50,7 +57,7 @@ namespace FastWin32.Memory
         }
         #endregion
 
-        #region alloc
+        #region AllocMemory
         /// <summary>
         /// 在当前进程中分配内存（默认可写，不可执行）
         /// </summary>
@@ -94,18 +101,18 @@ namespace FastWin32.Memory
         /// <returns>分配得到的内存所在地址</returns>
         public static IntPtr AllocMemory(uint processId, uint size, bool writable, bool executable)
         {
-            IntPtr hProcess;
+            IntPtr processHandle;
 
-            hProcess = OpenProcessRW(processId);
-            if (hProcess == IntPtr.Zero)
+            processHandle = OpenProcessVMOperation(processId);
+            if (processHandle == IntPtr.Zero)
                 return IntPtr.Zero;
             try
             {
-                return AllocMemoryInternal(hProcess, size, ProtectionFlagsGenerator(writable, executable));
+                return AllocMemoryInternal(processHandle, size, ProtectionFlagsGenerator(writable, executable));
             }
             finally
             {
-                CloseHandle(hProcess);
+                CloseHandle(processHandle);
             }
         }
 
@@ -133,28 +140,28 @@ namespace FastWin32.Memory
         /// <summary>
         /// 分配内存（默认可写，不可执行）
         /// </summary>
-        /// <param name="hProcess">进程句柄</param>
+        /// <param name="processHandle">进程句柄</param>
         /// <param name="size">要分配内存的大小</param>
         /// <returns>分配得到的内存所在地址</returns>
-        internal static IntPtr AllocMemoryInternal(IntPtr hProcess, uint size)
+        internal static IntPtr AllocMemoryInternal(IntPtr processHandle, uint size)
         {
-            return VirtualAllocEx(hProcess, IntPtr.Zero, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+            return VirtualAllocEx(processHandle, IntPtr.Zero, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         }
 
         /// <summary>
         /// 分配内存
         /// </summary>
-        /// <param name="hProcess">进程句柄</param>
+        /// <param name="processHandle">进程句柄</param>
         /// <param name="size">要分配内存的大小</param>
         /// <param name="flags">内存保护选项</param>
         /// <returns>分配得到的内存所在地址</returns>
-        internal static IntPtr AllocMemoryInternal(IntPtr hProcess, uint size, uint flags)
+        internal static IntPtr AllocMemoryInternal(IntPtr processHandle, uint size, uint flags)
         {
-            return VirtualAllocEx(hProcess, IntPtr.Zero, size, MEM_COMMIT | MEM_RESERVE, flags);
+            return VirtualAllocEx(processHandle, IntPtr.Zero, size, MEM_COMMIT | MEM_RESERVE, flags);
         }
         #endregion
 
-        #region free
+        #region FreeMemory
         /// <summary>
         /// 在当前进程中释放内存（MEM_RELEASE）
         /// </summary>
@@ -183,18 +190,18 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool FreeMemory(uint processId, IntPtr addr)
         {
-            IntPtr hProcess;
+            IntPtr processHandle;
 
-            hProcess = OpenProcessRW(processId);
-            if (hProcess == IntPtr.Zero)
+            processHandle = OpenProcessVMOperation(processId);
+            if (processHandle == IntPtr.Zero)
                 return false;
             try
             {
-                return FreeMemoryInternal(hProcess, addr);
+                return FreeMemoryInternal(processHandle, addr);
             }
             finally
             {
-                CloseHandle(hProcess);
+                CloseHandle(processHandle);
             }
         }
 
@@ -206,18 +213,18 @@ namespace FastWin32.Memory
         /// <param name="size">要释放内存的大小</param>
         public static bool FreeMemory(uint processId, IntPtr addr, uint size)
         {
-            IntPtr hProcess;
+            IntPtr processHandle;
 
-            hProcess = OpenProcessRW(processId);
-            if (hProcess == IntPtr.Zero)
+            processHandle = OpenProcessVMOperation(processId);
+            if (processHandle == IntPtr.Zero)
                 return false;
             try
             {
-                return FreeMemoryInternal(hProcess, addr, size);
+                return FreeMemoryInternal(processHandle, addr, size);
             }
             finally
             {
-                CloseHandle(hProcess);
+                CloseHandle(processHandle);
             }
         }
 
@@ -244,23 +251,23 @@ namespace FastWin32.Memory
         /// <summary>
         /// 释放内存（MEM_RELEASE）
         /// </summary>
-        /// <param name="hProcess">进程句柄</param>
+        /// <param name="processHandle">进程句柄</param>
         /// <param name="addr">指定释放内存的地址</param>
         /// <returns></returns>
-        internal static bool FreeMemoryInternal(IntPtr hProcess, IntPtr addr)
+        internal static bool FreeMemoryInternal(IntPtr processHandle, IntPtr addr)
         {
-            return VirtualFreeEx(hProcess, addr, 0, MEM_RELEASE);
+            return VirtualFreeEx(processHandle, addr, 0, MEM_RELEASE);
         }
 
         /// <summary>
         /// 释放内存（MEM_DECOMMIT）
         /// </summary>
-        /// <param name="hProcess">进程句柄</param>
+        /// <param name="processHandle">进程句柄</param>
         /// <param name="addr">指定释放内存的地址</param>
         /// <param name="size">要释放内存的大小</param>
-        internal static bool FreeMemoryInternal(IntPtr hProcess, IntPtr addr, uint size)
+        internal static bool FreeMemoryInternal(IntPtr processHandle, IntPtr addr, uint size)
         {
-            return VirtualFreeEx(hProcess, addr, size, MEM_DECOMMIT);
+            return VirtualFreeEx(processHandle, addr, size, MEM_DECOMMIT);
         }
         #endregion
     }

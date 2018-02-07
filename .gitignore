@@ -259,3 +259,11 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+
+# Custom
+.gitattributes
+.gitignore
+读写内存模板.txt
+模板使用代码.txt
+TrueRandom.cs
+FastWin32无用代码/

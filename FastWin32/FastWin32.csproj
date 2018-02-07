@@ -48,129 +48,32 @@
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>FastWin32.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x64\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;Net2Support</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DocumentationFile>bin\Debug\FastWin32.xml</DocumentationFile>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>TRACE;Net2Support</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DocumentationFile>bin\Release\FastWin32.xml</DocumentationFile>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;Net2Support</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DocumentationFile>bin\Debug\FastWin32.xml</DocumentationFile>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\Release\</OutputPath>
-    <DefineConstants>TRACE;Net2Support</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DocumentationFile>bin\Release\FastWin32.xml</DocumentationFile>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
   <ItemGroup>
-    <Compile Include="FastWin32\Control\LVITEM.cs" />
-    <Compile Include="FastWin32\Diagnostics\Disk.cs" />
-    <Compile Include="FastWin32\Diagnostics\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
+    <Compile Include="FastWin32\Asm\AsmTable.cs" />
     <Compile Include="FastWin32\Diagnostics\Injector.cs" />
-    <Compile Include="FastWin32\Asm\AsmLib.cs" />
     <Compile Include="FastWin32\Asm\AsmCompileException.cs" />
-    <Compile Include="FastWin32\Asm\InlineAsm.cs" />
     <Compile Include="FastWin32\Asm\Assembler.cs" />
-    <Compile Include="FastWin32\Asm\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="FastWin32\Control\Util.cs" />
-    <Compile Include="FastWin32\Control\Win32Control.cs" />
-    <Compile Include="FastWin32\Control\ExtendedListViewStyles.cs" />
-    <Compile Include="FastWin32\Control\SysListView32.cs" />
-    <Compile Include="FastWin32\Diagnostics\Desktop.cs" />
-    <Compile Include="FastWin32\Diagnostics\Process.cs" />
-    <Compile Include="FastWin32\Control\IWin32ControlStruct.cs" />
-    <Compile Include="FastWin32\Control\Point.cs" />
-    <Compile Include="FastWin32\Diagnostics\RemovableDiskMonitor.cs" />
+    <Compile Include="FastWin32\Diagnostics\Process32.cs" />
     <Compile Include="FastWin32\Hook\Method\LocalHook.cs" />
     <Compile Include="FastWin32\Hook\Method\LocalHookOld.cs" />
     <Compile Include="FastWin32\Hook\IHook.cs" />
     <Compile Include="FastWin32\Hook\WindowMessage\KeyboardHook.cs" />
-    <Compile Include="FastWin32\Hook\Method\QuickMethodHook.cs" />
     <Compile Include="FastWin32\Hook\Method\RemoteHook.cs" />
-    <Compile Include="FastWin32\Macro\CommCtrl.cs" />
-    <Compile Include="FastWin32\Macro\MinWinDef.cs" />
-    <Compile Include="FastWin32\Macro\WindowsX.cs" />
-    <Compile Include="FastWin32\Macro\Extension.cs" />
     <Compile Include="FastWin32\Memory\MemoryManagement.cs" />
     <Compile Include="FastWin32\Memory\MemoryIO.cs" />
-    <Compile Include="FastWin32\Memory\MemoryExecute.cs" />
     <Compile Include="FastWin32\Memory\Pointer.cs" />
-    <Compile Include="FastWin32\Memory\PointerType.cs" />
-    <Compile Include="FastWin32\Memory\ReadPageMode.cs" />
-    <Compile Include="FastWin32\Util.cs" />
-    <Compile Include="FastWin32\Diagnostics\Module.cs" />
+    <Compile Include="FastWin32\Diagnostics\Module32.cs" />
     <Compile Include="FastWin32\NativeMethods.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="FastWin32\Control\SysDateTimePick32.cs" />
-    <Compile Include="FastWin32\Control\SYSTEMTIME.cs" />
-    <Compile Include="FastWin32\Asm\Example\TrueRandom.cs" />
     <Compile Include="FastWin32\Diagnostics\Window.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="FastWin32.snk" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="FastWin32\Asm\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Include="FastWin32\Diagnostics\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="FastWin32.snk" />
-    <None Include="Resources\DInvoker.lzma" />
-    <None Include="Resources\NAsm.lzma" />
-  </ItemGroup>
-  <Import Project="..\LzmaSharp\LzmaSharp.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>"C:\Users\wwh10\Documents\Visual Studio 2017\Projects\版本号自增.exe" $(ProjectDir)</PreBuildEvent>

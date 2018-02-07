@@ -482,20 +482,20 @@ namespace FastWin32
         /// <summary>
         /// 回调函数 要继续枚举,返回true;要停止枚举,返回false
         /// </summary>
-        /// <param name="hWnd">子级窗口的句柄</param>
+        /// <param name="hwnd">子级窗口的句柄</param>
         /// <param name="lParam">EnumWindows或EnumDesktopWindows中给出的应用程序定义值</param>
         /// <returns></returns>
         [return: MarshalAs(UnmanagedType.Bool)]
-        public delegate bool EnumChildProc(IntPtr hWnd, IntPtr lParam);
+        public delegate bool EnumChildProc(IntPtr hwnd, IntPtr lParam);
 
         /// <summary>
         /// 回调函数 要继续枚举,返回true;要停止枚举,返回false
         /// </summary>
-        /// <param name="hWnd">顶级窗口的句柄</param>
+        /// <param name="hwnd">顶级窗口的句柄</param>
         /// <param name="lParam">EnumWindows或EnumDesktopWindows中给出的应用程序定义值</param>
         /// <returns></returns>
         [return: MarshalAs(UnmanagedType.Bool)]
-        public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+        public delegate bool EnumWindowsProc(IntPtr hwnd, IntPtr lParam);
 
         /// <summary>
         /// HookProc 回调函数
@@ -962,14 +962,6 @@ namespace FastWin32
         public static extern bool GetKeyboardState(byte[] lpKeyState);
 
         /// <summary>
-        /// 获取虚拟键状态
-        /// </summary>
-        /// <param name="nVirtKey"></param>
-        /// <returns>高位为1，表示按下，为0表示未按下。低位为1，表示虚拟键被切换。比如按下Caps Lock键，低位为1，反之低位为0</returns>
-        [DllImport("user32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "GetKeyState", ExactSpelling = true, SetLastError = true)]
-        public static extern short GetKeyState(int nVirtKey);
-
-        /// <summary>
         /// 该函数将指定的虚拟键码和键盘状态翻译为相应的字符或字符串。该函数使用由给定的键盘布局句柄标识的物理键盘布局和输入语言来翻译代码。
         /// </summary>
         /// <param name="uVirtKey">指定要翻译的虚拟键码。</param>
@@ -979,7 +971,7 @@ namespace FastWin32
         /// <param name="uFlags">定义一个菜单是否处于激活状态。若一菜单是活动的，则该参数为1，否则为0。</param>
         /// <returns></returns>
         [DllImport("user32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "ToAscii", ExactSpelling = true, SetLastError = true)]
-        public static extern int ToAscii(uint uVirtKey, uint uScanCode, byte[] lpKeyState, out char lpChar, uint uFlags);
+        public static extern int ToAscii(uint uVirtKey, uint uScanCode, byte[] lpKeyState, byte[] lpChar, uint uFlags);
         #endregion
 
         #region Memory Management Functions
@@ -1029,6 +1021,17 @@ namespace FastWin32
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool VirtualFreeEx(IntPtr hProcess, IntPtr lpAddress, uint dwSize, uint dwFreeType);
 
+        ///// <summary>
+        ///// 在当前进程中查询地址空间中内存地址的信息
+        ///// </summary>
+        ///// <param name="lpAddress">查询内存的地址</param>
+        ///// <param name="lpBuffer">内存页面信息</param>
+        ///// <param name="dwLength">MEMORY_BASIC_INFORMATION结构的大小</param>
+        ///// <returns></returns>
+        //[DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "VirtualQuery", ExactSpelling = true, SetLastError = true)]
+        //[return: MarshalAs(UnmanagedType.Bool)]
+        //public static extern bool VirtualQuery(IntPtr lpAddress, out MEMORY_BASIC_INFORMATION lpBuffer, uint dwLength);
+
         /// <summary>
         /// 查询地址空间中内存地址的信息
         /// </summary>
@@ -1053,6 +1056,18 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("user32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "SendMessageW", ExactSpelling = true, SetLastError = true)]
         public static extern uint SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
+        ///// <summary>
+        ///// 异步方法发送消息
+        ///// </summary>
+        ///// <param name="hWnd">窗口句柄</param>
+        ///// <param name="Msg">消息</param>
+        ///// <param name="wParam">参数1</param>
+        ///// <param name="lParam">参数2</param>
+        ///// <returns></returns>
+        //[DllImport("user32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "PostMessageW", ExactSpelling = true, SetLastError = true)]
+        //[return: MarshalAs(UnmanagedType.Bool)]
+        //public static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
         #endregion
 
         #region Process and Thread Functions
@@ -1192,6 +1207,50 @@ namespace FastWin32
         public static extern uint WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds);
         #endregion
 
+        #region Volume Management Functions
+        ///// <summary>
+        ///// Retrieves the name of a volume on a computer.
+        ///// FindFirstVolume is used to begin scanning the volumes of a computer.
+        ///// </summary>
+        ///// <param name="lpszVolumeName">A pointer to a buffer that receives a null-terminated string that specifies a volume Guid path for the first volume that is found.</param>
+        ///// <param name="cchBufferLength">The length of the buffer to receive the volume Guid path.</param>
+        ///// <returns></returns>
+        //[DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "FindFirstVolumeW", ExactSpelling = true, SetLastError = true)]
+        //public static extern IntPtr FindFirstVolume(StringBuilder lpszVolumeName, uint cchBufferLength);
+
+        ///// <summary>
+        ///// Continues a volume search started by a call to the FindFirstVolume function.
+        ///// FindNextVolume finds one volume per call.
+        ///// </summary>
+        ///// <param name="hFindVolume">The volume search handle returned by a previous call to the FindFirstVolume function.</param>
+        ///// <param name="lpszVolumeName">A pointer to a string that receives the volume Guid path that is found.</param>
+        ///// <param name="cchBufferLength">The length of the buffer that receives the volume Guid path, in TCHARs.</param>
+        ///// <returns></returns>
+        //[DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "FindNextVolumeW", ExactSpelling = true, SetLastError = true)]
+        //[return: MarshalAs(UnmanagedType.Bool)]
+        //public static extern bool FindNextVolume(IntPtr hFindVolume, StringBuilder lpszVolumeName, uint cchBufferLength);
+
+        ///// <summary>
+        ///// 获取驱动器类型
+        ///// </summary>
+        ///// <param name="lpRootPathName">驱动器根目录名</param>
+        ///// <returns></returns>
+        //[DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "GetDriveTypeW", ExactSpelling = true, SetLastError = true)]
+        //public static extern uint GetDriveType(string lpRootPathName);
+
+        ///// <summary>
+        ///// 检索指定卷的驱动器号和已装入文件夹路径的列表
+        ///// </summary>
+        ///// <param name="lpszVolumeName">卷的卷Guid路径。卷Guid路径的格式为"\\?\Volume{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}\"</param>
+        ///// <param name="lpszVolumePathNames">指向缓冲区的指针，该缓冲区接收驱动器号和挂载的文件夹路径列表。该列表是由一个额外的NULL字符终止的以空字符结尾的字符串的数组。如果缓冲区不足以保存完整列表，则缓冲区将尽可能多地保留列表。</param>
+        ///// <param name="cchBufferLength">TCHAR中的lpszVolumePathNames缓冲区 的长度，包括所有NULL字符。</param>
+        ///// <param name="lpcchReturnLength">如果调用成功，则此参数是复制到lpszVolumePathNames缓冲区的TCHAR数量。否则，这个参数是TCHARs中保存完整列表所需的缓冲区的大小。</param>
+        ///// <returns></returns>
+        //[DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "GetVolumePathNamesForVolumeNameW", ExactSpelling = true, SetLastError = true)]
+        //[return: MarshalAs(UnmanagedType.Bool)]
+        //public static unsafe extern bool GetVolumePathNamesForVolumeName(string lpszVolumeName, StringBuilder lpszVolumePathNames, uint cchBufferLength, uint* lpcchReturnLength);
+        #endregion
+
         #region Window Functions
         /// <summary>
         /// 遍历所有子窗口
@@ -1255,7 +1314,7 @@ namespace FastWin32
         /// <param name="lpdwProcessId">进程ID</param>
         /// <returns>线程ID</returns>
         [DllImport("user32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "GetWindowThreadProcessId", ExactSpelling = true, SetLastError = true)]
-        public static unsafe extern uint GetWindowThreadProcessId(IntPtr hWnd, uint* lpdwProcessId);
+        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
         /// <summary>
         /// 是否为有效窗口
