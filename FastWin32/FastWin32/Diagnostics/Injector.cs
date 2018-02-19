@@ -206,8 +206,8 @@ namespace FastWin32.Diagnostics
                 //获取程序集中被调用方法的返回值
                 if (!MemoryManagement.FreeMemoryInternal(processHandle, pFunction))
                     return false;
-                return exitCode == 0;
-                //ICLRRuntimeHost::ExecuteInDefaultAppDomain返回S_OK（0）表示成功
+                return (int)exitCode >= 0;
+                //ICLRRuntimeHost::ExecuteInDefaultAppDomain返回S_OK（0）表示成功。HRESULT不能直接比较，大于等于0就是成功
             }
             return true;
         }
@@ -295,12 +295,7 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         private static string GetSystemPath(bool is64)
         {
-            if (!Environment.Is64BitOperatingSystem)
-                return @"C:\Windows\System32";
-            else if (is64)
-                return @"C:\Windows\System32";
-            else
-                return @"C:\Windows\SysWOW64";
+            return Path.Combine(Environment.GetEnvironmentVariable("SystemRoot"), (!Environment.Is64BitOperatingSystem || is64) ? "System32" : "SysWOW64");
         }
 
         /// <summary>
@@ -1393,11 +1388,6 @@ namespace FastWin32.Diagnostics
                 using (BinaryReader binaryReader = new BinaryReader(new FileStream(path, FileMode.Open, FileAccess.Read)))
                     clrVersion = GetVersionString(binaryReader);
                 isAssembly = true;
-            }
-            catch (BadImageFormatException)
-            {
-                clrVersion = null;
-                isAssembly = false;
             }
             catch
             {

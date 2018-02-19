@@ -6,7 +6,7 @@ namespace FastWin32.Asm
     /// <summary>
     /// 汇编指令，机器码对应表
     /// </summary>
-    public class AsmData
+    public sealed class AsmData
     {
         internal List<byte> _byteList;
 

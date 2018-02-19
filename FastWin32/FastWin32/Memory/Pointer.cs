@@ -21,7 +21,7 @@ namespace FastWin32.Memory
     /// <summary>
     /// 指针
     /// </summary>
-    public class Pointer
+    public sealed class Pointer
     {
         internal string _moduleName;
 

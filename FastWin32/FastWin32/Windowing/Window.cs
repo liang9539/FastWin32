@@ -1,7 +1,7 @@
 ﻿using System;
 using static FastWin32.NativeMethods;
 
-namespace FastWin32.Diagnostics
+namespace FastWin32.Windowing
 {
     /// <summary>
     /// 窗口

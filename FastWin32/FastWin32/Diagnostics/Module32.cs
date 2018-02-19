@@ -56,7 +56,7 @@ namespace FastWin32.Diagnostics
                 return IntPtr.Zero;
             try
             {
-                return GetHandleInternal(processHandle, true, null, EnumModulesFilterFlag.DEFAULT);
+                return GetHandleInternal(processHandle, true, null);
             }
             finally
             {
@@ -82,7 +82,7 @@ namespace FastWin32.Diagnostics
                 return IntPtr.Zero;
             try
             {
-                return GetHandleInternal(processHandle, false, moduleName, EnumModulesFilterFlag.ALL);
+                return GetHandleInternal(processHandle, false, moduleName);
             }
             finally
             {
@@ -96,13 +96,9 @@ namespace FastWin32.Diagnostics
         /// <param name="processHandle">进程句柄</param>
         /// <param name="first">是否返回第一个模块句柄</param>
         /// <param name="moduleName">模块名</param>
-        /// <param name="flag">过滤标识</param>
         /// <returns></returns>
-        internal static unsafe IntPtr GetHandleInternal(IntPtr processHandle, bool first, string moduleName, uint flag)
+        internal static unsafe IntPtr GetHandleInternal(IntPtr processHandle, bool first, string moduleName)
         {
-            if (!first && string.IsNullOrEmpty(moduleName))
-                throw new ArgumentNullException("first为false时moduleName不能为空");
-
             bool is64;
             bool isXP;
             IntPtr moduleHandle;
@@ -110,14 +106,10 @@ namespace FastWin32.Diagnostics
             IntPtr[] moduleHandles;
             StringBuilder moduleNameBuffer;
 
-            if (processHandle == IntPtr.Zero)
-                return IntPtr.Zero;
             if (!Process32.Is64ProcessInternal(processHandle, out is64))
                 return IntPtr.Zero;
-            if (is64 && !Environment.Is64BitProcess)
-                throw new NotSupportedException("目标进程为64位但当前进程为32位");
-            moduleHandle = IntPtr.Zero;
             isXP = Environment.OSVersion.Version.Major == 5;
+            moduleHandle = IntPtr.Zero;
             if (isXP)
             {
                 //XP兼容
@@ -126,7 +118,7 @@ namespace FastWin32.Diagnostics
             }
             else
             {
-                if (!EnumProcessModulesEx(processHandle, &moduleHandle, (uint)IntPtr.Size, out size, flag))
+                if (!EnumProcessModulesEx(processHandle, &moduleHandle, (uint)IntPtr.Size, out size, is64 ? LIST_MODULES_64BIT : LIST_MODULES_32BIT))
                     //先获取储存所有模块句柄所需的字节数
                     return IntPtr.Zero;
             }
@@ -135,7 +127,6 @@ namespace FastWin32.Diagnostics
                 return moduleHandle;
             moduleHandles = new IntPtr[size / IntPtr.Size];
             fixed (IntPtr* p = &moduleHandles[0])
-            {
                 if (isXP)
                 {
                     //XP兼容
@@ -144,11 +135,10 @@ namespace FastWin32.Diagnostics
                 }
                 else
                 {
-                    if (!EnumProcessModulesEx(processHandle, p, size, out size, flag))
+                    if (!EnumProcessModulesEx(processHandle, p, size, out size, is64 ? LIST_MODULES_64BIT : LIST_MODULES_32BIT))
                         //获取所有模块句柄
                         return IntPtr.Zero;
                 }
-            }
             moduleNameBuffer = new StringBuilder((int)MODULENAME_MAX_LENGTH);
             for (int i = 0; i < moduleHandles.Length; i++)
             {
@@ -240,7 +230,7 @@ namespace FastWin32.Diagnostics
             short ordinal;
             int addressOffset;
 
-            moduleHandle = GetHandleInternal(processHandle, false, moduleName, EnumModulesFilterFlag.ALL);
+            moduleHandle = GetHandleInternal(processHandle, false, moduleName);
             if (moduleHandle == IntPtr.Zero)
                 return IntPtr.Zero;
             if (!MemoryIO.ReadInt32Internal(processHandle, moduleHandle + 0x3C, out ntHeaderOffset))

@@ -56,7 +56,7 @@
     <Compile Include="FastWin32\Diagnostics\Process32.cs" />
     <Compile Include="FastWin32\Hook\Method\LocalHook.cs" />
     <Compile Include="FastWin32\Hook\Method\LocalHookOld.cs" />
-    <Compile Include="FastWin32\Hook\IHook.cs" />
+    <Compile Include="FastWin32\Hook\WindowMessage\MessageProxy.cs" />
     <Compile Include="FastWin32\Hook\WindowMessage\KeyboardHook.cs" />
     <Compile Include="FastWin32\Hook\Method\RemoteHook.cs" />
     <Compile Include="FastWin32\Memory\MemoryManagement.cs" />
@@ -65,7 +65,7 @@
     <Compile Include="FastWin32\Diagnostics\Module32.cs" />
     <Compile Include="FastWin32\NativeMethods.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="FastWin32\Diagnostics\Window.cs" />
+    <Compile Include="FastWin32\Windowing\Window.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FastWin32.snk" />

@@ -5,7 +5,7 @@ namespace FastWin32.Asm
     /// <summary>
     /// Asm编译/反编译错误
     /// </summary>
-    public class AsmCompilerException : Exception
+    public sealed class AsmCompilerException : Exception
     {
         /// <summary>
         /// 用指定的错误消息创建新实例

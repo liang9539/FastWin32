@@ -29,31 +29,13 @@ namespace FastWin32
 
         public const uint INFINITE = 0xFFFFFFFF;
 
-        /// <summary>
-        /// 枚举进程模块过滤标志
-        /// </summary>
-        public static class EnumModulesFilterFlag
-        {
-            /// <summary>
-            /// 默认
-            /// </summary>
-            public const uint DEFAULT = 0x0;
+        public const uint LIST_MODULES_DEFAULT = 0x0;
 
-            /// <summary>
-            /// 列出32位模块
-            /// </summary>
-            public const uint X86 = 0x1;
+        public const uint LIST_MODULES_32BIT = 0x1;
 
-            /// <summary>
-            /// 列出64位模块
-            /// </summary>
-            public const uint X64 = 0x2;
+        public const uint LIST_MODULES_64BIT = 0x2;
 
-            /// <summary>
-            /// 列出所有模块
-            /// </summary>
-            public const uint ALL = 0x3;
-        }
+        public const uint LIST_MODULES_ALL = 0x3;
 
         #region Hook Id
         /// <summary>
@@ -344,16 +326,27 @@ namespace FastWin32
         public const uint STACK_SIZE_PARAM_IS_A_RESERVATION = 0x00010000;
         #endregion
 
+        #region Thread Security and Access Rights
+        /// <summary>
+        /// Required to read certain information from the thread object, such as the exit code (see GetExitCodeThread).
+        /// </summary>
+        public const uint THREAD_QUERY_INFORMATION = 0x0040;
+        #endregion
+
         #region Window Messages
-        public const uint WM_KEYDOWN = 0x100;
+        public const uint WM_NULL = 0x0000;
 
-        public const uint WM_KEYUP = 0x101;
+        public const uint WM_KEYDOWN = 0x0100;
 
-        public const uint WM_SYSKEYDOWN = 0x104;
+        public const uint WM_KEYUP = 0x0101;
 
-        public const uint WM_SYSKEYUP = 0x105;
+        public const uint WM_SYSKEYDOWN = 0x0104;
+
+        public const uint WM_SYSKEYUP = 0x0105;
 
         public const uint WM_USER = 0x0400;
+
+        public const uint WM_APP = 0x8000;
         #endregion
         #endregion
 
@@ -476,6 +469,72 @@ namespace FastWin32
             public static readonly uint Size = (uint)Marshal.SizeOf(typeof(MEMORY_BASIC_INFORMATION));
         }
         #endregion
+
+        #region Message Structures
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct MSG
+        {
+            public IntPtr hwnd;
+
+            public uint message;
+
+            public IntPtr wParam;
+
+            public IntPtr lParam;
+
+            public uint time;
+
+            public POINT pt;
+        }
+        #endregion
+
+        #region Rectangle Structures
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct POINT
+        {
+            public int x;
+
+            public int y;
+        }
+        #endregion
+
+        #region Shell Structures
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct SHELLEXECUTEINFO
+        {
+            public uint cbSize;
+
+            public uint fMask;
+
+            public IntPtr hwnd;
+
+            public string lpVerb;
+
+            public string lpFile;
+
+            public string lpParameters;
+
+            public string lpDirectory;
+
+            public int nShow;
+
+            public IntPtr hInstApp;
+
+            public IntPtr lpIDList;
+
+            public string lpClass;
+
+            public IntPtr hkeyClass;
+
+            public uint dwHotKey;
+
+            public IntPtr hMonitor;
+
+            public IntPtr hProcess;
+
+            public static readonly uint Size = (uint)Marshal.SizeOf(typeof(SHELLEXECUTEINFO));
+        }
+        #endregion
         #endregion
 
         #region Callback
@@ -522,6 +581,19 @@ namespace FastWin32
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "ReadProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, uint* lpNumberOfBytesRead);
+
+        /// <summary>
+        /// 读取内存
+        /// </summary>
+        /// <param name="hProcess">进程句柄</param>
+        /// <param name="lpBaseAddress">地址</param>
+        /// <param name="lpBuffer">要读取的内容</param>
+        /// <param name="nSize">读取内容的大小</param>
+        /// <param name="lpNumberOfBytesRead">实际读取大小</param>
+        /// <returns></returns>
+        [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "ReadProcessMemory", ExactSpelling = true, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out uint lpNumberOfBytesRead);
 
         /// <summary>
         /// 读取内存
@@ -718,6 +790,19 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "WriteProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out uint lpNumberOfBytesWritten);
+
+        /// <summary>
+        /// 写入内存
+        /// </summary>
+        /// <param name="hProcess">进程句柄</param>
+        /// <param name="lpBaseAddress">地址</param>
+        /// <param name="lpBuffer">要写入的内容</param>
+        /// <param name="nSize">写入内容的大小</param>
+        /// <param name="lpNumberOfBytesWritten">实际写入大小</param>
+        /// <returns></returns>
+        [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "WriteProcessMemory", ExactSpelling = true, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
         public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, void* lpBuffer, uint nSize, uint* lpNumberOfBytesWritten);
 
         /// <summary>
@@ -893,13 +978,14 @@ namespace FastWin32
 
         #region Dynamic-Link Library Functions
         /// <summary>
-        /// 获取指定模块中导出函数的地址
+        /// 获取模块所在路径
         /// </summary>
         /// <param name="hModule">模块句柄</param>
-        /// <param name="lpProcName">函数名</param>
+        /// <param name="lpFilename">文件路径</param>
+        /// <param name="nSize">缓冲区大小</param>
         /// <returns></returns>
-        [DllImport("kernel32.dll", BestFitMapping = true, CharSet = CharSet.Ansi, EntryPoint = "GetProcAddress", ExactSpelling = true, SetLastError = true)]
-        public static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
+        [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "GetModuleFileNameW", ExactSpelling = true, SetLastError = true)]
+        public static extern uint GetModuleFileName(IntPtr hModule, StringBuilder lpFilename, uint nSize);
 
         /// <summary>
         /// 获取当前进程中符合条件的模块句柄
@@ -908,6 +994,15 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "GetModuleHandleW", ExactSpelling = true, SetLastError = true)]
         public static extern IntPtr GetModuleHandle(string lpModuleName);
+
+        /// <summary>
+        /// 获取指定模块中导出函数的地址
+        /// </summary>
+        /// <param name="hModule">模块句柄</param>
+        /// <param name="lpProcName">函数名</param>
+        /// <returns></returns>
+        [DllImport("kernel32.dll", BestFitMapping = true, CharSet = CharSet.Ansi, EntryPoint = "GetProcAddress", ExactSpelling = true, SetLastError = true)]
+        public static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
 
         /// <summary>
         /// 加载DLL
@@ -1044,6 +1139,18 @@ namespace FastWin32
 
         #region Message Functions
         /// <summary>
+        /// 向线程发送消息
+        /// </summary>
+        /// <param name="idThread">线程ID</param>
+        /// <param name="Msg">消息类型</param>
+        /// <param name="wParam">参数1</param>
+        /// <param name="lParam">参数2</param>
+        /// <returns></returns>
+        [DllImport("user32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "PostThreadMessageW", ExactSpelling = true, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool PostThreadMessage(uint idThread, uint Msg, IntPtr wParam, IntPtr lParam);
+
+        /// <summary>
         /// 同步方法发送消息
         /// </summary>
         /// <param name="hWnd">窗口句柄</param>
@@ -1108,6 +1215,14 @@ namespace FastWin32
         public static unsafe extern bool GetExitCodeThread(IntPtr hThread, out uint lpExitCode);
 
         /// <summary>
+        /// 获取线程所在进程的ID
+        /// </summary>
+        /// <param name="Thread">线程句柄</param>
+        /// <returns></returns>
+        [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "GetProcessIdOfThread", ExactSpelling = true, SetLastError = true)]
+        public static extern uint GetProcessIdOfThread(IntPtr Thread);
+
+        /// <summary>
         /// 获取指定的进程是否在WOW64下运行
         /// </summary>
         /// <param name="hProcess">进程句柄</param>
@@ -1130,6 +1245,16 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "OpenProcess", ExactSpelling = true, SetLastError = true)]
         public static extern IntPtr OpenProcess(uint dwDesiredAccess, bool bInheritHandle, uint dwProcessId);
+
+        /// <summary>
+        /// 打开线程
+        /// </summary>
+        /// <param name="dwDesiredAccess">权限</param>
+        /// <param name="bInheritHandle">是否继承</param>
+        /// <param name="dwThreadId">线程ID</param>
+        /// <returns></returns>
+        [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "OpenThread", ExactSpelling = true, SetLastError = true)]
+        public static extern IntPtr OpenThread(uint dwDesiredAccess, bool bInheritHandle, uint dwThreadId);
         #endregion
 
         #region PSAPI Functions
@@ -1179,6 +1304,17 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("psapi.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "GetProcessImageFileNameW", ExactSpelling = true, SetLastError = true)]
         public static extern uint GetProcessImageFileName(IntPtr hProcess, StringBuilder lpImageFileName, uint nSize);
+        #endregion
+
+        #region Shell Functions
+        /// <summary>
+        /// 启动程序
+        /// </summary>
+        /// <param name="pExecInfo">选项</param>
+        /// <returns></returns>
+        [DllImport("shell32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "ShellExecuteExW", ExactSpelling = true, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool ShellExecuteEx(ref SHELLEXECUTEINFO pExecInfo);
         #endregion
 
         #region Synchronization Functions

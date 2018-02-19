@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using FastWin32.Diagnostics;
 using FastWin32.Memory;
 using static FastWin32.NativeMethods;
 
@@ -8,7 +9,7 @@ namespace FastWin32.Hook.Method
     /// <summary>
     /// 挂钩当前进程API
     /// </summary>
-    public class LocalHook
+    public sealed class LocalHook
     {
         /// <summary>
         /// 杀死函数，让函数不执行任何动作
@@ -21,7 +22,7 @@ namespace FastWin32.Hook.Method
             if (string.IsNullOrEmpty(moduleName) || string.IsNullOrEmpty(apiName))
                 throw new ArgumentNullException();
 
-            return Kill(Diagnostics.Module32.GetProcAddressInternal(moduleName, apiName));
+            return Kill(Module32.GetProcAddressInternal(moduleName, apiName));
         }
 
         /// <summary>

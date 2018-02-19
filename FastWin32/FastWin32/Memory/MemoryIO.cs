@@ -56,10 +56,8 @@ namespace FastWin32.Memory
 
             if (!Process32.Is64ProcessInternal(processHandle, out is64))
                 return false;
-            //获取进程位数失败
             if (p._type == PointerType.Address_Offset)
             {
-                //地址+偏移
                 if (is64)
                 {
                     if (!ReadInt64Internal(processHandle, p._baseAddr, out newAddr64))
@@ -74,100 +72,61 @@ namespace FastWin32.Memory
                 }
             }
             else
-                p._lastAddr = Module32.GetHandleInternal(processHandle, false, p._moduleName, EnumModulesFilterFlag.X86);
-            //不使用EnumModulesFilterFlag.ALL是因为无法识别到底是32位模块还是64位模块
-            //获取32位模块基址失败
+                p._lastAddr = Module32.GetHandleInternal(processHandle, false, p._moduleName);
             if (p._lastAddr == IntPtr.Zero)
-                if (p._type == PointerType.Address_Offset)
-                    return false;
-                else
-                    goto x64;
-            else if (p._type == PointerType.Address_Offset)
-                return true;
-            //获取基础地址失败
-            p._lastAddr += p._moduleOffset;
-            //加上模块偏移
-            if (p._offset != null)
-            {
-                //有偏移
-                for (int i = 0; i < p._offset.Length; i++)
-                {
-                    //处理每个偏移
-                    if (!ReadInt32Internal(processHandle, p._lastAddr, out newAddr32))
-                        //读取新地址失败
-                        return false;
-                    p._lastAddr = (IntPtr)(newAddr32 + p._offset[i]);
-                    //生成新地址
-                }
-            }
-            return true;
-            x64:
-            p._lastAddr = Module32.GetHandleInternal(processHandle, false, p._moduleName, EnumModulesFilterFlag.X64);
-            if (p._lastAddr == IntPtr.Zero)
-                //获取64位模块基址失败
                 return false;
             p._lastAddr += p._moduleOffset;
-            //加上模块偏移
-            if (p._offset != null)
-            {
-                //有偏移
+            if (p._offset == null)
+                return true;
+            if (is64)
                 for (int i = 0; i < p._offset.Length; i++)
                 {
-                    //处理每个偏移
                     if (!ReadInt64Internal(processHandle, p._lastAddr, out newAddr64))
-                        //读取新地址失败
                         return false;
                     p._lastAddr = (IntPtr)(newAddr64 + p._offset[i]);
-                    //生成新地址
                 }
-            }
+            else
+                for (int i = 0; i < p._offset.Length; i++)
+                {
+                    if (!ReadInt32Internal(processHandle, p._lastAddr, out newAddr32))
+                        return false;
+                    p._lastAddr = (IntPtr)(newAddr32 + p._offset[i]);
+                }
             return true;
         }
 
         #region 读写模板
         /// <summary>
-        /// 内存读取模板回调函数
+        /// 内存读写模板回调函数
+        /// </summary>
+        /// <param name="processHandle">进程句柄</param>
+        /// <param name="addr">地址</param>
+        /// <returns></returns>
+        private delegate bool IOTemplateCallback(IntPtr processHandle, IntPtr addr);
+
+        /// <summary>
+        /// 内存读写模板回调函数
         /// </summary>
         /// <typeparam name="TValue"></typeparam>
         /// <param name="processHandle">进程句柄</param>
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        private delegate bool TemplateOfReadCallback<TValue>(IntPtr processHandle, IntPtr addr, out TValue value);
+        private delegate bool IOTemplateCallback<TValue>(IntPtr processHandle, IntPtr addr, out TValue value);
 
         /// <summary>
-        /// 内存读取模板回调函数
+        /// 内存读写模板
         /// </summary>
-        /// <param name="processHandle">进程句柄</param>
-        /// <param name="addr">地址</param>
-        /// <returns></returns>
-        private delegate bool TemplateOfReadRefCallback(IntPtr processHandle, IntPtr addr);
-
-        /// <summary>
-        /// 内存写入模板回调函数
-        /// </summary>
-        /// <param name="processHandle">进程句柄</param>
-        /// <param name="addr">地址</param>
-        /// <returns></returns>
-        private delegate bool TemplateOfWriteCallback(IntPtr processHandle, IntPtr addr);
-
-        /// <summary>
-        /// 内存读取模板
-        /// </summary>
-        /// <typeparam name="TValue"></typeparam>
         /// <param name="processId">进程ID</param>
         /// <param name="addr">地址</param>
-        /// <param name="value">值</param>
-        /// <param name="reader">读取器</param>
+        /// <param name="callback">读写器</param>
         /// <returns></returns>
-        private static bool TemplateOfReadOut<TValue>(uint processId, IntPtr addr, out TValue value, TemplateOfReadCallback<TValue> reader)
+        private static bool IOTemplate(uint processId, IntPtr addr, IOTemplateCallback callback)
         {
             IntPtr processHandle;
             bool is64;
 
-            value = default(TValue);
             processHandle = OpenProcessVMReadWriteQuery(processId);
-            //读写查询权限打开进程
             if (processHandle == IntPtr.Zero)
                 return false;
             if (!Process32.Is64ProcessInternal(processHandle, out is64))
@@ -176,13 +135,42 @@ namespace FastWin32.Memory
                 throw new NotSupportedException("目标进程为64位但当前进程为32位");
             try
             {
-                return reader(processHandle, addr, out value);
-                //读取
+                return callback(processHandle, addr);
             }
             finally
             {
                 CloseHandle(processHandle);
-                //关闭句柄
+            }
+        }
+
+        /// <summary>
+        /// 内存读写模板
+        /// </summary>
+        /// <param name="processId">进程ID</param>
+        /// <param name="p">指针</param>
+        /// <param name="callback">读写器</param>
+        /// <returns></returns>
+        private static bool IOTemplate(uint processId, Pointer p, IOTemplateCallback callback)
+        {
+            IntPtr processHandle;
+            bool is64;
+
+            processHandle = OpenProcessVMReadWriteQuery(processId);
+            if (processHandle == IntPtr.Zero)
+                return false;
+            if (!Process32.Is64ProcessInternal(processHandle, out is64))
+                return false;
+            if (is64 && !Environment.Is64BitProcess)
+                throw new NotSupportedException("目标进程为64位但当前进程为32位");
+            try
+            {
+                if (!GetPointerAddrInternal(processHandle, p))
+                    return false;
+                return callback(processHandle, p._lastAddr);
+            }
+            finally
+            {
+                CloseHandle(processHandle);
             }
         }
 
@@ -191,18 +179,49 @@ namespace FastWin32.Memory
         /// </summary>
         /// <typeparam name="TValue"></typeparam>
         /// <param name="processId">进程ID</param>
-        /// <param name="p">指针</param>
+        /// <param name="addr">地址</param>
         /// <param name="value">值</param>
-        /// <param name="reader">读取器</param>
+        /// <param name="callback">读写器</param>
         /// <returns></returns>
-        private static bool TemplateOfReadOut<TValue>(uint processId, Pointer p, out TValue value, TemplateOfReadCallback<TValue> reader)
+        private static bool IOTemplate<TValue>(uint processId, IntPtr addr, out TValue value, IOTemplateCallback<TValue> callback)
         {
             IntPtr processHandle;
             bool is64;
 
             value = default(TValue);
             processHandle = OpenProcessVMReadWriteQuery(processId);
-            //读写查询权限打开进程
+            if (processHandle == IntPtr.Zero)
+                return false;
+            if (!Process32.Is64ProcessInternal(processHandle, out is64))
+                return false;
+            if (is64 && !Environment.Is64BitProcess)
+                throw new NotSupportedException("目标进程为64位但当前进程为32位");
+            try
+            {
+                return callback(processHandle, addr, out value);
+            }
+            finally
+            {
+                CloseHandle(processHandle);
+            }
+        }
+
+        /// <summary>
+        /// 内存读写模板
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="processId">进程ID</param>
+        /// <param name="p">指针</param>
+        /// <param name="value">值</param>
+        /// <param name="callback">读写器</param>
+        /// <returns></returns>
+        private static bool IOTemplate<TValue>(uint processId, Pointer p, out TValue value, IOTemplateCallback<TValue> callback)
+        {
+            IntPtr processHandle;
+            bool is64;
+
+            value = default(TValue);
+            processHandle = OpenProcessVMReadWriteQuery(processId);
             if (processHandle == IntPtr.Zero)
                 return false;
             if (!Process32.Is64ProcessInternal(processHandle, out is64))
@@ -213,151 +232,14 @@ namespace FastWin32.Memory
             {
                 if (!GetPointerAddrInternal(processHandle, p))
                 {
-                    //获取指针指向的地址
                     value = default(TValue);
                     return false;
                 }
-                return reader(processHandle, p._lastAddr, out value);
-                //读取
+                return callback(processHandle, p._lastAddr, out value);
             }
             finally
             {
                 CloseHandle(processHandle);
-                //关闭句柄
-            }
-        }
-
-        /// <summary>
-        /// 内存读取模板
-        /// </summary>
-        /// <param name="processId">进程ID</param>
-        /// <param name="addr">地址</param>
-        /// <param name="reader">读取器</param>
-        /// <returns></returns>
-        private static bool TemplateOfRead(uint processId, IntPtr addr, TemplateOfReadRefCallback reader)
-        {
-            IntPtr processHandle;
-            bool is64;
-
-            processHandle = OpenProcessVMReadWriteQuery(processId);
-            //读写查询权限打开进程
-            if (processHandle == IntPtr.Zero)
-                return false;
-            if (!Process32.Is64ProcessInternal(processHandle, out is64))
-                return false;
-            if (is64 && !Environment.Is64BitProcess)
-                throw new NotSupportedException("目标进程为64位但当前进程为32位");
-            try
-            {
-                return reader(processHandle, addr);
-                //读取
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-                //关闭句柄
-            }
-        }
-
-        /// <summary>
-        /// 内存读取模板
-        /// </summary>
-        /// <param name="processId">进程ID</param>
-        /// <param name="p">指针</param>
-        /// <param name="reader">读取器</param>
-        /// <returns></returns>
-        private static bool TemplateOfRead(uint processId, Pointer p, TemplateOfReadRefCallback reader)
-        {
-            IntPtr processHandle;
-            bool is64;
-
-            processHandle = OpenProcessVMReadWriteQuery(processId);
-            //读写查询权限打开进程
-            if (processHandle == IntPtr.Zero)
-                return false;
-            if (!Process32.Is64ProcessInternal(processHandle, out is64))
-                return false;
-            if (is64 && !Environment.Is64BitProcess)
-                throw new NotSupportedException("目标进程为64位但当前进程为32位");
-            try
-            {
-                if (!GetPointerAddrInternal(processHandle, p))
-                    //获取指针指向的地址
-                    return false;
-                return reader(processHandle, p._lastAddr);
-                //读取
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-                //关闭句柄
-            }
-        }
-
-        /// <summary>
-        /// 内存写入模板
-        /// </summary>
-        /// <param name="processId">进程ID</param>
-        /// <param name="addr">地址</param>
-        /// <param name="writer">写入器</param>
-        /// <returns></returns>
-        private static bool TemplateOfWrite(uint processId, IntPtr addr, TemplateOfWriteCallback writer)
-        {
-            IntPtr processHandle;
-            bool is64;
-
-            processHandle = OpenProcessVMReadWriteQuery(processId);
-            //读写查询权限打开进程
-            if (processHandle == IntPtr.Zero)
-                return false;
-            if (!Process32.Is64ProcessInternal(processHandle, out is64))
-                return false;
-            if (is64 && !Environment.Is64BitProcess)
-                throw new NotSupportedException("目标进程为64位但当前进程为32位");
-            try
-            {
-                return writer(processHandle, addr);
-                //写入
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-                //关闭句柄
-            }
-        }
-
-        /// <summary>
-        /// 内存写入模板
-        /// </summary>
-        /// <param name="processId">进程ID</param>
-        /// <param name="p">指针</param>
-        /// <param name="writer">写入器</param>
-        /// <returns></returns>
-        private static bool TemplateOfWrite(uint processId, Pointer p, TemplateOfWriteCallback writer)
-        {
-            IntPtr processHandle;
-            bool is64;
-
-            processHandle = OpenProcessVMReadWriteQuery(processId);
-            //读写查询权限打开进程
-            if (processHandle == IntPtr.Zero)
-                return false;
-            if (!Process32.Is64ProcessInternal(processHandle, out is64))
-                return false;
-            if (is64 && !Environment.Is64BitProcess)
-                throw new NotSupportedException("目标进程为64位但当前进程为32位");
-            try
-            {
-                if (!GetPointerAddrInternal(processHandle, p))
-                    //获取指针指向的地址
-                    return false;
-                return writer(processHandle, p._lastAddr);
-                //写入
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-                //关闭句柄
             }
         }
         #endregion
@@ -373,12 +255,26 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadBytes(uint processId, IntPtr addr, byte[] value)
         {
-            if (value == null)
+            if (value == null || value.Length == 0)
                 throw new ArgumentNullException();
-            if (value.Length == 0)
-                throw new ArgumentException();
 
-            return TemplateOfRead(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => ReadBytesInternal(processHandle, addrCallback, value));
+            return IOTemplate(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => ReadBytesInternal(processHandle, addrCallback, value));
+        }
+
+        /// <summary>
+        /// 读取字节数组，读取的长度由value的长度决定
+        /// </summary>
+        /// <param name="processId">进程ID</param>
+        /// <param name="addr">地址</param>
+        /// <param name="value">值</param>
+        /// <param name="numOfRead">实际读取的字节数</param>
+        /// <returns></returns>
+        public static bool ReadBytes(uint processId, IntPtr addr, byte[] value, out uint numOfRead)
+        {
+            if (value == null || value.Length == 0)
+                throw new ArgumentNullException();
+
+            return IOTemplate(processId, addr, out numOfRead, (IntPtr processHandle, IntPtr addrCallback, out uint numOfReadCallback) => ReadBytesInternal(processHandle, addrCallback, value, out numOfReadCallback));
         }
 
         /// <summary>
@@ -390,12 +286,26 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadBytes(uint processId, Pointer p, byte[] value)
         {
-            if (value == null)
+            if (value == null || value.Length == 0)
                 throw new ArgumentNullException();
-            if (value.Length == 0)
-                throw new ArgumentException();
 
-            return TemplateOfRead(processId, p, (IntPtr processHandle, IntPtr addrCallback) => ReadBytesInternal(processHandle, addrCallback, value));
+            return IOTemplate(processId, p, (IntPtr processHandle, IntPtr addrCallback) => ReadBytesInternal(processHandle, addrCallback, value));
+        }
+
+        /// <summary>
+        /// 读取字节数组，读取的长度由value的长度决定
+        /// </summary>
+        /// <param name="processId">进程ID</param>
+        /// <param name="p">指针</param>
+        /// <param name="value">值</param>
+        /// <param name="numOfRead">实际读取的字节数</param>
+        /// <returns></returns>
+        public static bool ReadBytes(uint processId, Pointer p, byte[] value, out uint numOfRead)
+        {
+            if (value == null || value.Length == 0)
+                throw new ArgumentNullException();
+
+            return IOTemplate(processId, p, out numOfRead, (IntPtr processHandle, IntPtr addrCallback, out uint numOfReadCallback) => ReadBytesInternal(processHandle, addrCallback, value, out numOfReadCallback));
         }
 
         /// <summary>
@@ -408,6 +318,19 @@ namespace FastWin32.Memory
         internal static unsafe bool ReadBytesInternal(IntPtr processHandle, IntPtr addr, byte[] value)
         {
             return ReadProcessMemory(processHandle, addr, value, (uint)value.Length, null);
+        }
+
+        /// <summary>
+        /// 读取字节数组，读取的长度由value的长度决定
+        /// </summary>
+        /// <param name="processHandle">进程句柄</param>
+        /// <param name="addr">地址</param>
+        /// <param name="value">值</param>
+        /// <param name="numOfRead">实际读取的字节数</param>
+        /// <returns></returns>
+        internal static unsafe bool ReadBytesInternal(IntPtr processHandle, IntPtr addr, byte[] value, out uint numOfRead)
+        {
+            return ReadProcessMemory(processHandle, addr, value, (uint)value.Length, out numOfRead);
         }
         #endregion
 
@@ -426,7 +349,25 @@ namespace FastWin32.Memory
             if (value.Length == 0)
                 throw new ArgumentException();
 
-            return TemplateOfWrite(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteBytesInternal(processHandle, addrCallback, value));
+            return IOTemplate(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteBytesInternal(processHandle, addrCallback, value));
+        }
+
+        /// <summary>
+        /// 写入字节数组，写入的长度由value的长度决定
+        /// </summary>
+        /// <param name="processId">进程ID</param>
+        /// <param name="addr">地址</param>
+        /// <param name="value">值</param>
+        /// <param name="numOfWritten">实际写入的字节数</param>
+        /// <returns></returns>
+        public static bool WriteBytes(uint processId, IntPtr addr, byte[] value, out uint numOfWritten)
+        {
+            if (value == null)
+                throw new ArgumentNullException();
+            if (value.Length == 0)
+                throw new ArgumentException();
+
+            return IOTemplate(processId, addr, out numOfWritten, (IntPtr processHandle, IntPtr addrCallback, out uint numOfWrittenCallback) => WriteBytesInternal(processHandle, addrCallback, value, out numOfWrittenCallback));
         }
 
         /// <summary>
@@ -443,7 +384,25 @@ namespace FastWin32.Memory
             if (value.Length == 0)
                 throw new ArgumentException();
 
-            return TemplateOfWrite(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteBytesInternal(processHandle, addrCallback, value));
+            return IOTemplate(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteBytesInternal(processHandle, addrCallback, value));
+        }
+
+        /// <summary>
+        /// 写入字节数组，写入的长度由value的长度决定
+        /// </summary>
+        /// <param name="processId">进程ID</param>
+        /// <param name="p">指针</param>
+        /// <param name="value">值</param>
+        /// <param name="numOfWritten">实际写入的字节数</param>
+        /// <returns></returns>
+        public static bool WriteBytes(uint processId, Pointer p, byte[] value, out uint numOfWritten)
+        {
+            if (value == null)
+                throw new ArgumentNullException();
+            if (value.Length == 0)
+                throw new ArgumentException();
+
+            return IOTemplate(processId, p, out numOfWritten, (IntPtr processHandle, IntPtr addrCallback, out uint numOfWrittenCallback) => WriteBytesInternal(processHandle, addrCallback, value, out numOfWrittenCallback));
         }
 
         /// <summary>
@@ -456,6 +415,19 @@ namespace FastWin32.Memory
         internal static unsafe bool WriteBytesInternal(IntPtr processHandle, IntPtr addr, byte[] value)
         {
             return WriteProcessMemory(processHandle, addr, value, (uint)value.Length, null);
+        }
+
+        /// <summary>
+        /// 写入字节数组，写入的长度由value的长度决定
+        /// </summary>
+        /// <param name="processHandle">进程句柄</param>
+        /// <param name="addr">地址</param>
+        /// <param name="value">值</param>
+        /// <param name="numOfWritten">实际写入的字节数</param>
+        /// <returns></returns>
+        internal static unsafe bool WriteBytesInternal(IntPtr processHandle, IntPtr addr, byte[] value, out uint numOfWritten)
+        {
+            return WriteProcessMemory(processHandle, addr, value, (uint)value.Length, out numOfWritten);
         }
         #endregion
         #endregion
@@ -550,7 +522,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadByte(uint processId, IntPtr addr, out byte value)
         {
-            return TemplateOfReadOut(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out byte buffer) => ReadByteInternal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out byte buffer) => ReadByteInternal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -562,7 +534,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadByte(uint processId, Pointer p, out byte value)
         {
-            return TemplateOfReadOut(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out byte buffer) => ReadByteInternal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out byte buffer) => ReadByteInternal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -588,7 +560,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteByte(uint processId, IntPtr addr, byte value)
         {
-            return TemplateOfWrite(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteByteInternal(processHandle, addrCallback, value));
+            return IOTemplate(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteByteInternal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -600,7 +572,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteByte(uint processId, Pointer p, byte value)
         {
-            return TemplateOfWrite(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteByteInternal(processHandle, addrCallback, value));
+            return IOTemplate(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteByteInternal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -628,7 +600,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadBoolean(uint processId, IntPtr addr, out bool value)
         {
-            return TemplateOfReadOut(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out bool buffer) => ReadBooleanInternal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out bool buffer) => ReadBooleanInternal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -640,7 +612,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadBoolean(uint processId, Pointer p, out bool value)
         {
-            return TemplateOfReadOut(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out bool buffer) => ReadBooleanInternal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out bool buffer) => ReadBooleanInternal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -666,7 +638,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteBoolean(uint processId, IntPtr addr, bool value)
         {
-            return TemplateOfWrite(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteBooleanInternal(processHandle, addrCallback, value));
+            return IOTemplate(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteBooleanInternal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -678,7 +650,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteBoolean(uint processId, Pointer p, bool value)
         {
-            return TemplateOfWrite(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteBooleanInternal(processHandle, addrCallback, value));
+            return IOTemplate(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteBooleanInternal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -706,7 +678,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadChar(uint processId, IntPtr addr, out char value)
         {
-            return TemplateOfReadOut(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out char buffer) => ReadCharInternal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out char buffer) => ReadCharInternal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -718,7 +690,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadChar(uint processId, Pointer p, out char value)
         {
-            return TemplateOfReadOut(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out char buffer) => ReadCharInternal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out char buffer) => ReadCharInternal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -744,7 +716,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteChar(uint processId, IntPtr addr, char value)
         {
-            return TemplateOfWrite(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteCharInternal(processHandle, addrCallback, value));
+            return IOTemplate(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteCharInternal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -756,7 +728,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteChar(uint processId, Pointer p, char value)
         {
-            return TemplateOfWrite(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteCharInternal(processHandle, addrCallback, value));
+            return IOTemplate(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteCharInternal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -784,7 +756,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadInt16(uint processId, IntPtr addr, out short value)
         {
-            return TemplateOfReadOut(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out short buffer) => ReadInt16Internal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out short buffer) => ReadInt16Internal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -796,7 +768,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadInt16(uint processId, Pointer p, out short value)
         {
-            return TemplateOfReadOut(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out short buffer) => ReadInt16Internal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out short buffer) => ReadInt16Internal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -822,7 +794,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteInt16(uint processId, IntPtr addr, short value)
         {
-            return TemplateOfWrite(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteInt16Internal(processHandle, addrCallback, value));
+            return IOTemplate(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteInt16Internal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -834,7 +806,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteInt16(uint processId, Pointer p, short value)
         {
-            return TemplateOfWrite(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteInt16Internal(processHandle, addrCallback, value));
+            return IOTemplate(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteInt16Internal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -862,7 +834,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadUInt16(uint processId, IntPtr addr, out ushort value)
         {
-            return TemplateOfReadOut(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out ushort buffer) => ReadUInt16Internal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out ushort buffer) => ReadUInt16Internal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -874,7 +846,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadUInt16(uint processId, Pointer p, out ushort value)
         {
-            return TemplateOfReadOut(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out ushort buffer) => ReadUInt16Internal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out ushort buffer) => ReadUInt16Internal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -900,7 +872,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteUInt16(uint processId, IntPtr addr, ushort value)
         {
-            return TemplateOfWrite(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteUInt16Internal(processHandle, addrCallback, value));
+            return IOTemplate(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteUInt16Internal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -912,7 +884,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteUInt16(uint processId, Pointer p, ushort value)
         {
-            return TemplateOfWrite(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteUInt16Internal(processHandle, addrCallback, value));
+            return IOTemplate(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteUInt16Internal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -940,7 +912,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadInt32(uint processId, IntPtr addr, out int value)
         {
-            return TemplateOfReadOut(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out int buffer) => ReadInt32Internal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out int buffer) => ReadInt32Internal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -952,7 +924,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadInt32(uint processId, Pointer p, out int value)
         {
-            return TemplateOfReadOut(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out int buffer) => ReadInt32Internal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out int buffer) => ReadInt32Internal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -978,7 +950,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteInt32(uint processId, IntPtr addr, int value)
         {
-            return TemplateOfWrite(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteInt32Internal(processHandle, addrCallback, value));
+            return IOTemplate(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteInt32Internal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -990,7 +962,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteInt32(uint processId, Pointer p, int value)
         {
-            return TemplateOfWrite(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteInt32Internal(processHandle, addrCallback, value));
+            return IOTemplate(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteInt32Internal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -1018,7 +990,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadUInt32(uint processId, IntPtr addr, out uint value)
         {
-            return TemplateOfReadOut(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out uint buffer) => ReadUInt32Internal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out uint buffer) => ReadUInt32Internal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -1030,7 +1002,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadUInt32(uint processId, Pointer p, out uint value)
         {
-            return TemplateOfReadOut(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out uint buffer) => ReadUInt32Internal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out uint buffer) => ReadUInt32Internal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -1056,7 +1028,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteUInt32(uint processId, IntPtr addr, uint value)
         {
-            return TemplateOfWrite(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteUInt32Internal(processHandle, addrCallback, value));
+            return IOTemplate(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteUInt32Internal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -1068,7 +1040,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteUInt32(uint processId, Pointer p, uint value)
         {
-            return TemplateOfWrite(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteUInt32Internal(processHandle, addrCallback, value));
+            return IOTemplate(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteUInt32Internal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -1096,7 +1068,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadInt64(uint processId, IntPtr addr, out long value)
         {
-            return TemplateOfReadOut(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out long buffer) => ReadInt64Internal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out long buffer) => ReadInt64Internal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -1108,7 +1080,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadInt64(uint processId, Pointer p, out long value)
         {
-            return TemplateOfReadOut(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out long buffer) => ReadInt64Internal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out long buffer) => ReadInt64Internal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -1134,7 +1106,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteInt64(uint processId, IntPtr addr, long value)
         {
-            return TemplateOfWrite(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteInt64Internal(processHandle, addrCallback, value));
+            return IOTemplate(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteInt64Internal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -1146,7 +1118,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteInt64(uint processId, Pointer p, long value)
         {
-            return TemplateOfWrite(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteInt64Internal(processHandle, addrCallback, value));
+            return IOTemplate(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteInt64Internal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -1174,7 +1146,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadUInt64(uint processId, IntPtr addr, out ulong value)
         {
-            return TemplateOfReadOut(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out ulong buffer) => ReadUInt64Internal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out ulong buffer) => ReadUInt64Internal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -1186,7 +1158,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadUInt64(uint processId, Pointer p, out ulong value)
         {
-            return TemplateOfReadOut(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out ulong buffer) => ReadUInt64Internal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out ulong buffer) => ReadUInt64Internal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -1212,7 +1184,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteUInt64(uint processId, IntPtr addr, ulong value)
         {
-            return TemplateOfWrite(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteUInt64Internal(processHandle, addrCallback, value));
+            return IOTemplate(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteUInt64Internal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -1224,7 +1196,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteUInt64(uint processId, Pointer p, ulong value)
         {
-            return TemplateOfWrite(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteUInt64Internal(processHandle, addrCallback, value));
+            return IOTemplate(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteUInt64Internal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -1252,7 +1224,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadFloat(uint processId, IntPtr addr, out float value)
         {
-            return TemplateOfReadOut(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out float buffer) => ReadFloatInternal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out float buffer) => ReadFloatInternal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -1264,7 +1236,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadFloat(uint processId, Pointer p, out float value)
         {
-            return TemplateOfReadOut(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out float buffer) => ReadFloatInternal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out float buffer) => ReadFloatInternal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -1290,7 +1262,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteFloat(uint processId, IntPtr addr, float value)
         {
-            return TemplateOfWrite(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteFloatInternal(processHandle, addrCallback, value));
+            return IOTemplate(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteFloatInternal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -1302,7 +1274,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteFloat(uint processId, Pointer p, float value)
         {
-            return TemplateOfWrite(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteFloatInternal(processHandle, addrCallback, value));
+            return IOTemplate(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteFloatInternal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -1330,7 +1302,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadDouble(uint processId, IntPtr addr, out double value)
         {
-            return TemplateOfReadOut(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out double buffer) => ReadDoubleInternal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out double buffer) => ReadDoubleInternal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -1342,7 +1314,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadDouble(uint processId, Pointer p, out double value)
         {
-            return TemplateOfReadOut(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out double buffer) => ReadDoubleInternal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out double buffer) => ReadDoubleInternal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -1368,7 +1340,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteDouble(uint processId, IntPtr addr, double value)
         {
-            return TemplateOfWrite(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteDoubleInternal(processHandle, addrCallback, value));
+            return IOTemplate(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteDoubleInternal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -1380,7 +1352,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteDouble(uint processId, Pointer p, double value)
         {
-            return TemplateOfWrite(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteDoubleInternal(processHandle, addrCallback, value));
+            return IOTemplate(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteDoubleInternal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -1408,7 +1380,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadIntPtr(uint processId, IntPtr addr, out IntPtr value)
         {
-            return TemplateOfReadOut(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out IntPtr buffer) => ReadIntPtrInternal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out IntPtr buffer) => ReadIntPtrInternal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -1420,7 +1392,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadIntPtr(uint processId, Pointer p, out IntPtr value)
         {
-            return TemplateOfReadOut(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out IntPtr buffer) => ReadIntPtrInternal(processHandle, addrCallback, out buffer));
+            return IOTemplate(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out IntPtr buffer) => ReadIntPtrInternal(processHandle, addrCallback, out buffer));
         }
 
         /// <summary>
@@ -1446,7 +1418,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteIntPtr(uint processId, IntPtr addr, IntPtr value)
         {
-            return TemplateOfWrite(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteIntPtrInternal(processHandle, addrCallback, value));
+            return IOTemplate(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteIntPtrInternal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -1458,7 +1430,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteIntPtr(uint processId, Pointer p, IntPtr value)
         {
-            return TemplateOfWrite(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteIntPtrInternal(processHandle, addrCallback, value));
+            return IOTemplate(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteIntPtrInternal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -1485,9 +1457,9 @@ namespace FastWin32.Memory
         /// <param name="value">值</param>
         /// <param name="doubleZero">是否以2个\0结尾（比如LPWSTR以2个字节\0结尾，而LPSTR以1个字节\0结尾）</param>
         /// <returns></returns>
-        public static bool ReadString(uint processId, IntPtr addr, string value, bool doubleZero)
+        public static bool ReadString(uint processId, IntPtr addr, out string value, bool doubleZero)
         {
-            return TemplateOfReadOut(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out string buffer) => ReadStringInternal(processHandle, addrCallback, out buffer, 0x1000, doubleZero, Encoding.Unicode));
+            return IOTemplate(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out string buffer) => ReadStringInternal(processHandle, addrCallback, out buffer, 0x1000, doubleZero, Encoding.Unicode));
         }
 
         /// <summary>
@@ -1499,9 +1471,9 @@ namespace FastWin32.Memory
         /// <param name="doubleZero">是否以2个\0结尾（比如LPWSTR以2个字节\0结尾，而LPSTR以1个字节\0结尾）</param>
         /// <param name="encoding">编码</param>
         /// <returns></returns>
-        public static bool ReadString(uint processId, IntPtr addr, string value, bool doubleZero, Encoding encoding)
+        public static bool ReadString(uint processId, IntPtr addr, out string value, bool doubleZero, Encoding encoding)
         {
-            return TemplateOfReadOut(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out string buffer) => ReadStringInternal(processHandle, addrCallback, out buffer, 0x1000, doubleZero, encoding));
+            return IOTemplate(processId, addr, out value, (IntPtr processHandle, IntPtr addrCallback, out string buffer) => ReadStringInternal(processHandle, addrCallback, out buffer, 0x1000, doubleZero, encoding));
         }
 
         /// <summary>
@@ -1512,9 +1484,9 @@ namespace FastWin32.Memory
         /// <param name="value">值</param>
         /// <param name="doubleZero">是否以2个\0结尾（比如LPWSTR以2个字节\0结尾，而LPSTR以1个字节\0结尾）</param>
         /// <returns></returns>
-        public static bool ReadString(uint processId, Pointer p, string value, bool doubleZero)
+        public static bool ReadString(uint processId, Pointer p, out string value, bool doubleZero)
         {
-            return TemplateOfReadOut(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out string buffer) => ReadStringInternal(processHandle, addrCallback, out buffer, 0x1000, doubleZero, Encoding.Unicode));
+            return IOTemplate(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out string buffer) => ReadStringInternal(processHandle, addrCallback, out buffer, 0x1000, doubleZero, Encoding.Unicode));
         }
 
         /// <summary>
@@ -1528,7 +1500,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool ReadString(uint processId, Pointer p, out string value, bool doubleZero, Encoding encoding)
         {
-            return TemplateOfReadOut(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out string buffer) => ReadStringInternal(processHandle, addrCallback, out buffer, 0x1000, doubleZero, encoding));
+            return IOTemplate(processId, p, out value, (IntPtr processHandle, IntPtr addrCallback, out string buffer) => ReadStringInternal(processHandle, addrCallback, out buffer, 0x1000, doubleZero, encoding));
         }
 
         /// <summary>
@@ -1675,7 +1647,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteString(uint processId, IntPtr addr, string value)
         {
-            return TemplateOfWrite(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteStringInternal(processHandle, addrCallback, value));
+            return IOTemplate(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteStringInternal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -1688,7 +1660,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteString(uint processId, IntPtr addr, string value, Encoding encoding)
         {
-            return TemplateOfWrite(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteStringInternal(processHandle, addrCallback, value, encoding));
+            return IOTemplate(processId, addr, (IntPtr processHandle, IntPtr addrCallback) => WriteStringInternal(processHandle, addrCallback, value, encoding));
         }
 
         /// <summary>
@@ -1700,7 +1672,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteString(uint processId, Pointer p, string value)
         {
-            return TemplateOfWrite(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteStringInternal(processHandle, addrCallback, value));
+            return IOTemplate(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteStringInternal(processHandle, addrCallback, value));
         }
 
         /// <summary>
@@ -1713,7 +1685,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool WriteString(uint processId, Pointer p, string value, Encoding encoding)
         {
-            return TemplateOfWrite(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteStringInternal(processHandle, addrCallback, value, encoding));
+            return IOTemplate(processId, p, (IntPtr processHandle, IntPtr addrCallback) => WriteStringInternal(processHandle, addrCallback, value, encoding));
         }
 
         /// <summary>

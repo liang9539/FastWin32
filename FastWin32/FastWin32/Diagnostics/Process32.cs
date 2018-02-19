@@ -44,6 +44,20 @@ namespace FastWin32.Diagnostics
         }
 
         /// <summary>
+        /// 通过线程ID获取进程ID
+        /// </summary>
+        /// <param name="threadId">线程ID</param>
+        /// <returns></returns>
+        public static uint GetProcessIdByThreadId(uint threadId)
+        {
+            IntPtr threadHandle;
+
+            if ((threadHandle = OpenThread(THREAD_QUERY_INFORMATION, false, threadId)) == IntPtr.Zero)
+                return 0;
+            return GetProcessIdOfThread(threadHandle);
+        }
+
+        /// <summary>
         /// 获取进程名
         /// </summary>
         /// <param name="processId">进程ID</param>
@@ -202,6 +216,31 @@ namespace FastWin32.Diagnostics
         internal static bool ResumeProcessInternal(IntPtr processHandle)
         {
             return ZwResumeProcess(processHandle) != unchecked((uint)-1);
+        }
+
+        /// <summary>
+        /// 动态提升进程权限，以管理员模式运行当前进程，如果执行成功当前进程将退出，执行失败无反应
+        /// </summary>
+        /// <param name="windowHandle">主窗口的句柄</param>
+        /// <returns></returns>
+        public static void SelfElevate(IntPtr windowHandle)
+        {
+            StringBuilder filePath;
+            SHELLEXECUTEINFO shellExecuteInfo;
+
+            filePath = new StringBuilder((int)MAX_PATH);
+            if (GetModuleFileName(IntPtr.Zero, filePath, MAX_PATH) == 0)
+                return;
+            shellExecuteInfo = new SHELLEXECUTEINFO
+            {
+                cbSize = SHELLEXECUTEINFO.Size,
+                hwnd = windowHandle,
+                lpVerb = "runas",
+                lpFile = filePath.ToString(),
+                nShow = 1
+            };
+            if (ShellExecuteEx(ref shellExecuteInfo))
+                Environment.Exit(0);
         }
     }
 }
