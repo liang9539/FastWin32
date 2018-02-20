@@ -17,7 +17,7 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         private static IntPtr OpenProcessVMReadQuery(uint processId)
         {
-            return OpenProcess(PROCESS_VM_READ | PROCESS_QUERY_INFORMATION, false, processId);
+            return OpenProcess(FastWin32Settings.SeDebugPrivilege ? PROCESS_ALL_ACCESS : PROCESS_VM_READ | PROCESS_QUERY_INFORMATION, false, processId);
         }
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         private static IntPtr OpenProcessProcessSuspendResume(uint processId)
         {
-            return OpenProcess(PROCESS_SUSPEND_RESUME, false, processId);
+            return OpenProcess(FastWin32Settings.SeDebugPrivilege ? PROCESS_ALL_ACCESS : PROCESS_SUSPEND_RESUME, false, processId);
         }
 
         /// <summary>
@@ -55,6 +55,15 @@ namespace FastWin32.Diagnostics
             if ((threadHandle = OpenThread(THREAD_QUERY_INFORMATION, false, threadId)) == IntPtr.Zero)
                 return 0;
             return GetProcessIdOfThread(threadHandle);
+        }
+
+        /// <summary>
+        /// 获取当前进程ID
+        /// </summary>
+        /// <returns></returns>
+        public static uint GetCurrentProcessId()
+        {
+            return NativeMethods.GetCurrentProcessId();
         }
 
         /// <summary>

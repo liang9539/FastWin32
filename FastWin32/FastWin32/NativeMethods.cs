@@ -539,7 +539,7 @@ namespace FastWin32
 
         #region Callback
         /// <summary>
-        /// 回调函数 要继续枚举,返回true;要停止枚举,返回false
+        /// 回调函数 要继续遍历,返回true;要停止遍历,返回false
         /// </summary>
         /// <param name="hWnd">子级窗口的句柄</param>
         /// <param name="lParam">EnumWindows或EnumDesktopWindows中给出的应用程序定义值</param>
@@ -548,7 +548,7 @@ namespace FastWin32
         public delegate bool EnumChildProc(IntPtr hWnd, IntPtr lParam);
 
         /// <summary>
-        /// 回调函数 要继续枚举,返回true;要停止枚举,返回false
+        /// 回调函数 要继续遍历,返回true;要停止遍历,返回false
         /// </summary>
         /// <param name="hWnd">顶级窗口的句柄</param>
         /// <param name="lParam">EnumWindows或EnumDesktopWindows中给出的应用程序定义值</param>
@@ -1198,6 +1198,13 @@ namespace FastWin32
         public static unsafe extern IntPtr CreateRemoteThread(IntPtr hProcess, void* lpThreadAttributes, uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, uint* lpThreadId);
 
         /// <summary>
+        /// 获取当前进程ID
+        /// </summary>
+        /// <returns>线程ID</returns>
+        [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "GetCurrentProcessId", ExactSpelling = true, SetLastError = true)]
+        public static extern uint GetCurrentProcessId();
+
+        /// <summary>
         /// 获取当前线程ID
         /// </summary>
         /// <returns>线程ID</returns>
@@ -1259,7 +1266,7 @@ namespace FastWin32
 
         #region PSAPI Functions
         /// <summary>
-        /// 枚举进程的所有模块
+        /// 遍历进程的所有模块
         /// </summary>
         /// <param name="hProcess">进程的句柄</param>
         /// <param name="lphModule">模块句柄</param>
@@ -1271,7 +1278,7 @@ namespace FastWin32
         public static unsafe extern bool EnumProcessModules(IntPtr hProcess, IntPtr* lphModule, uint cb, out uint lpcbNeeded);
 
         /// <summary>
-        /// 枚举进程的所有模块
+        /// 遍历进程的所有模块
         /// </summary>
         /// <param name="hProcess">进程的句柄</param>
         /// <param name="lphModule">模块句柄</param>

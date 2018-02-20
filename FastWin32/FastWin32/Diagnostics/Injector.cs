@@ -77,7 +77,7 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         private static IntPtr OpenProcessInjecting(uint processId)
         {
-            return OpenProcess(PROCESS_CREATE_THREAD | PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_QUERY_INFORMATION, false, processId);
+            return OpenProcess(FastWin32Settings.SeDebugPrivilege ? PROCESS_ALL_ACCESS : PROCESS_CREATE_THREAD | PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_QUERY_INFORMATION, false, processId);
         }
 
         /// <summary>

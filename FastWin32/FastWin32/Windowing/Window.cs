@@ -9,7 +9,7 @@ namespace FastWin32.Windowing
     public static class Window
     {
         /// <summary>
-        /// 枚举窗口回调函数，继续枚举返回true，否则返回false
+        /// 遍历窗口回调函数，继续遍历返回true，否则返回false
         /// </summary>
         /// <param name="windowHandle">窗口句柄</param>
         /// <returns></returns>
@@ -103,7 +103,7 @@ namespace FastWin32.Windowing
         }
 
         /// <summary>
-        /// 枚举所有顶级窗口
+        /// 遍历所有顶级窗口
         /// </summary>
         /// <param name="callback">查找到窗口时的回调函数</param>
         /// <returns></returns>
@@ -116,7 +116,7 @@ namespace FastWin32.Windowing
         }
 
         /// <summary>
-        /// 枚举所有子窗口
+        /// 遍历所有子窗口
         /// </summary>
         /// <param name="windowHandleParent">父窗口</param>
         /// <param name="callback">查找到窗口时的回调函数</param>

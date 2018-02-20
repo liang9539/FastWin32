@@ -54,6 +54,7 @@
     <Compile Include="FastWin32\Asm\AsmCompileException.cs" />
     <Compile Include="FastWin32\Asm\Assembler.cs" />
     <Compile Include="FastWin32\Diagnostics\Process32.cs" />
+    <Compile Include="FastWin32\FastWin32Settings.cs" />
     <Compile Include="FastWin32\Hook\Method\LocalHook.cs" />
     <Compile Include="FastWin32\Hook\Method\LocalHookOld.cs" />
     <Compile Include="FastWin32\Hook\WindowMessage\MessageProxy.cs" />

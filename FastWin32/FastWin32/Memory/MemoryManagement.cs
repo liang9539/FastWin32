@@ -15,7 +15,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         private static IntPtr OpenProcessVMOperation(uint processId)
         {
-            return OpenProcess(PROCESS_VM_OPERATION, false, processId);
+            return OpenProcess(FastWin32Settings.SeDebugPrivilege ? PROCESS_ALL_ACCESS : PROCESS_VM_OPERATION, false, processId);
         }
 
         #region ProtectionFlagsGenerator
