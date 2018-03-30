@@ -5,7 +5,7 @@ namespace FastWin32.Memory
     /// <summary>
     /// 指针类型
     /// </summary>
-    internal enum PointerType : int
+    internal enum PointerType
     {
         /// <summary>
         /// 模块名+偏移
