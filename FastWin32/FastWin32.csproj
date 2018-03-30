@@ -22,7 +22,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DocumentationFile>bin\Debug\FastWin32.xml</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
-    <LangVersion>7</LangVersion>
+    <LangVersion>default</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,7 +35,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DocumentationFile>bin\Release\FastWin32.xml</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
-    <LangVersion>7</LangVersion>
+    <LangVersion>default</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -43,27 +43,30 @@
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>FastWin32.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace>FastWin32</RootNamespace>
+  </PropertyGroup>
   <ItemGroup>
-    <Compile Include="FastWin32\Asm\AsmTable.cs" />
-    <Compile Include="FastWin32\Diagnostics\Injector.cs" />
-    <Compile Include="FastWin32\Asm\AsmCompileException.cs" />
-    <Compile Include="FastWin32\Asm\Assembler.cs" />
-    <Compile Include="FastWin32\Diagnostics\Process32.cs" />
-    <Compile Include="FastWin32\FastWin32Settings.cs" />
-    <Compile Include="FastWin32\Hook\Method\LocalHook.cs" />
-    <Compile Include="FastWin32\Hook\Method\LocalHookOld.cs" />
-    <Compile Include="FastWin32\Hook\WindowMessage\MessageProxy.cs" />
-    <Compile Include="FastWin32\Hook\WindowMessage\KeyboardHook.cs" />
-    <Compile Include="FastWin32\Hook\Method\RemoteHook.cs" />
-    <Compile Include="FastWin32\Memory\MemoryManagement.cs" />
-    <Compile Include="FastWin32\Memory\MemoryIO.cs" />
-    <Compile Include="FastWin32\Memory\PageInfo.cs" />
-    <Compile Include="FastWin32\Memory\Pointer.cs" />
-    <Compile Include="FastWin32\Diagnostics\Module32.cs" />
-    <Compile Include="FastWin32\NativeMethods.cs" />
-    <Compile Include="FastWin32\SafeNativeHandle.cs" />
+    <Compile Include="Asm\AsmTable.cs" />
+    <Compile Include="Diagnostics\Injector.cs" />
+    <Compile Include="Asm\AsmCompileException.cs" />
+    <Compile Include="Asm\Assembler.cs" />
+    <Compile Include="Diagnostics\Process32.cs" />
+    <Compile Include="FastWin32Settings.cs" />
+    <Compile Include="Hook\Method\LocalHook.cs" />
+    <Compile Include="Hook\Method\LocalHookOld.cs" />
+    <Compile Include="Hook\WindowMessage\MessageProxy.cs" />
+    <Compile Include="Hook\WindowMessage\KeyboardHook.cs" />
+    <Compile Include="Hook\Method\RemoteHook.cs" />
+    <Compile Include="Memory\MemoryManagement.cs" />
+    <Compile Include="Memory\MemoryIO.cs" />
+    <Compile Include="Memory\PageInfo.cs" />
+    <Compile Include="Memory\Pointer.cs" />
+    <Compile Include="Diagnostics\Module32.cs" />
+    <Compile Include="NativeMethods.cs" />
+    <Compile Include="SafeNativeHandle.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="FastWin32\Windowing\Window.cs" />
+    <Compile Include="Windowing\Window.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FastWin32.snk" />
