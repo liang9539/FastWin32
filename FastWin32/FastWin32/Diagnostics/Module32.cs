@@ -67,19 +67,13 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         public static IntPtr GetHandle(uint processId)
         {
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
 
-            processHandle = OpenProcessVMReadQuery(processId);
-            if (processHandle == IntPtr.Zero)
-                return IntPtr.Zero;
-            try
-            {
-                return GetHandleInternal(processHandle, true, null);
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-            }
+            using (processHandle = OpenProcessVMReadQuery(processId))
+                if (processHandle.IsValid)
+                    return GetHandleInternal(processHandle, true, null);
+                else
+                    return IntPtr.Zero;
         }
 
         /// <summary>
@@ -93,19 +87,13 @@ namespace FastWin32.Diagnostics
             if (string.IsNullOrEmpty(moduleName))
                 throw new ArgumentNullException();
 
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
 
-            processHandle = OpenProcessVMReadQuery(processId);
-            if (processHandle == IntPtr.Zero)
-                return IntPtr.Zero;
-            try
-            {
-                return GetHandleInternal(processHandle, false, moduleName);
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-            }
+            using (processHandle = OpenProcessVMReadQuery(processId))
+                if (processHandle.IsValid)
+                    return GetHandleInternal(processHandle, false, moduleName);
+                else
+                    return IntPtr.Zero;
         }
 
         /// <summary>
@@ -180,7 +168,7 @@ namespace FastWin32.Diagnostics
             if (callback == null)
                 throw new ArgumentNullException();
 
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
             bool is64;
             bool isXP;
             IntPtr moduleHandle;
@@ -189,57 +177,53 @@ namespace FastWin32.Diagnostics
             StringBuilder moduleName;
             StringBuilder filePath;
 
-            processHandle = OpenProcessVMReadQuery(processId);
-            if (processHandle == IntPtr.Zero)
-                return false;
-            try
-            {
-                if (!Process32.Is64BitProcessInternal(processHandle, out is64))
-                    return false;
-                isXP = Environment.OSVersion.Version.Major == 5;
-                if (isXP)
+            using (processHandle = OpenProcessVMReadQuery(processId))
+                if (processHandle.IsValid)
                 {
-                    //XP兼容
-                    if (!EnumProcessModules(processHandle, &moduleHandle, (uint)IntPtr.Size, out size))
+                    if (!Process32.Is64BitProcessInternal(processHandle, out is64))
                         return false;
-                }
-                else
-                {
-                    if (!EnumProcessModulesEx(processHandle, &moduleHandle, (uint)IntPtr.Size, out size, is64 ? LIST_MODULES_64BIT : LIST_MODULES_32BIT))
-                        //先获取储存所有模块句柄所需的字节数
-                        return false;
-                }
-                moduleHandles = new IntPtr[size / IntPtr.Size];
-                fixed (IntPtr* p = &moduleHandles[0])
+                    isXP = Environment.OSVersion.Version.Major == 5;
                     if (isXP)
                     {
                         //XP兼容
-                        if (!EnumProcessModules(processHandle, p, size, out size))
+                        if (!EnumProcessModules(processHandle, &moduleHandle, (uint)IntPtr.Size, out size))
                             return false;
                     }
                     else
                     {
-                        if (!EnumProcessModulesEx(processHandle, p, size, out size, is64 ? LIST_MODULES_64BIT : LIST_MODULES_32BIT))
-                            //获取所有模块句柄
+                        if (!EnumProcessModulesEx(processHandle, &moduleHandle, (uint)IntPtr.Size, out size, is64 ? LIST_MODULES_64BIT : LIST_MODULES_32BIT))
+                            //先获取储存所有模块句柄所需的字节数
                             return false;
                     }
-                moduleName = getModuleName ? new StringBuilder((int)MAX_MODULE_NAME32) : null;
-                filePath = getFilePath ? new StringBuilder((int)MAX_PATH) : null;
-                for (int i = 0; i < moduleHandles.Length; i++)
-                {
-                    if (getModuleName && !GetModuleBaseName(processHandle, moduleHandles[i], moduleName, MAX_MODULE_NAME32))
-                        return false;
-                    if (getFilePath && GetModuleFileName(processHandle, filePath, MAX_PATH) == 0)
-                        return false;
-                    if (!callback(moduleHandles[i], getModuleName ? moduleName.ToString() : null, getFilePath ? filePath.ToString() : null))
-                        return true;
+                    moduleHandles = new IntPtr[size / IntPtr.Size];
+                    fixed (IntPtr* p = &moduleHandles[0])
+                        if (isXP)
+                        {
+                            //XP兼容
+                            if (!EnumProcessModules(processHandle, p, size, out size))
+                                return false;
+                        }
+                        else
+                        {
+                            if (!EnumProcessModulesEx(processHandle, p, size, out size, is64 ? LIST_MODULES_64BIT : LIST_MODULES_32BIT))
+                                //获取所有模块句柄
+                                return false;
+                        }
+                    moduleName = getModuleName ? new StringBuilder((int)MAX_MODULE_NAME32) : null;
+                    filePath = getFilePath ? new StringBuilder((int)MAX_PATH) : null;
+                    for (int i = 0; i < moduleHandles.Length; i++)
+                    {
+                        if (getModuleName && !GetModuleBaseName(processHandle, moduleHandles[i], moduleName, MAX_MODULE_NAME32))
+                            return false;
+                        if (getFilePath && GetModuleFileName(processHandle, filePath, MAX_PATH) == 0)
+                            return false;
+                        if (!callback(moduleHandles[i], getModuleName ? moduleName.ToString() : null, getFilePath ? filePath.ToString() : null))
+                            return true;
+                    }
+                    return true;
                 }
-                return true;
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-            }
+                else
+                    return false;
         }
 
         /// <summary>
@@ -272,19 +256,13 @@ namespace FastWin32.Diagnostics
             if (string.IsNullOrEmpty(functionName))
                 throw new ArgumentNullException();
 
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
 
-            processHandle = OpenProcessVMReadQuery(processId);
-            if (processHandle == IntPtr.Zero)
-                return IntPtr.Zero;
-            try
-            {
-                return GetProcAddressInternal(processHandle, moduleName, functionName);
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-            }
+            using (processHandle = OpenProcessVMReadQuery(processId))
+                if (processHandle.IsValid)
+                    return GetProcAddressInternal(processHandle, moduleName, functionName);
+                else
+                    return IntPtr.Zero;
         }
 
         /// <summary>
@@ -375,19 +353,13 @@ namespace FastWin32.Diagnostics
             if (callback == null)
                 throw new ArgumentNullException();
 
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
 
-            processHandle = OpenProcessVMReadQuery(processId);
-            if (processHandle == IntPtr.Zero)
-                return false;
-            try
-            {
-                return EnumFunctions(processHandle, moduleName, callback);
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-            }
+            using (processHandle = OpenProcessVMReadQuery(processId))
+                if (processHandle.IsValid)
+                    return EnumFunctionsInternal(processHandle, moduleName, callback);
+                else
+                    return false;
         }
 
         /// <summary>
@@ -402,19 +374,13 @@ namespace FastWin32.Diagnostics
             if (callback == null)
                 throw new ArgumentNullException();
 
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
 
-            processHandle = OpenProcessVMReadQuery(processId);
-            if (processHandle == IntPtr.Zero)
-                return false;
-            try
-            {
-                return EnumFunctions(processHandle, moduleHandle, callback);
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-            }
+            using (processHandle = OpenProcessVMReadQuery(processId))
+                if (processHandle.IsValid)
+                    return EnumFunctionsInternal(processHandle, moduleHandle, callback);
+                else
+                    return false;
         }
 
         /// <summary>
@@ -424,14 +390,14 @@ namespace FastWin32.Diagnostics
         /// <param name="moduleName">模块名</param>
         /// <param name="callback">回调函数</param>
         /// <returns></returns>
-        internal static unsafe bool EnumFunctions(IntPtr processHandle, string moduleName, EnumFunctionsCallback callback)
+        internal static unsafe bool EnumFunctionsInternal(IntPtr processHandle, string moduleName, EnumFunctionsCallback callback)
         {
             IntPtr moduleHandle;
 
             moduleHandle = GetHandleInternal(processHandle, false, moduleName);
             if (moduleHandle == IntPtr.Zero)
                 return false;
-            return EnumFunctions(processHandle, moduleHandle, callback);
+            return EnumFunctionsInternal(processHandle, moduleHandle, callback);
         }
 
         /// <summary>
@@ -441,7 +407,7 @@ namespace FastWin32.Diagnostics
         /// <param name="moduleHandle">模块句柄</param>
         /// <param name="callback">回调函数</param>
         /// <returns></returns>
-        internal static unsafe bool EnumFunctions(IntPtr processHandle, IntPtr moduleHandle, EnumFunctionsCallback callback)
+        internal static unsafe bool EnumFunctionsInternal(IntPtr processHandle, IntPtr moduleHandle, EnumFunctionsCallback callback)
         {
             int ntHeaderOffset;
             bool is64;

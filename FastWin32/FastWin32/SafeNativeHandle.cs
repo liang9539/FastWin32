@@ -10,7 +10,9 @@ namespace FastWin32
     {
         private IntPtr _handle;
 
-        private bool _disposed;
+        private bool _isDisposed;
+
+        public bool IsValid => _handle != IntPtr.Zero;
 
         public static implicit operator SafeNativeHandle(IntPtr value) => new SafeNativeHandle() { _handle = value };
 
@@ -18,11 +20,12 @@ namespace FastWin32
 
         public void Dispose()
         {
-            if (_disposed)
+            if (_isDisposed)
                 return;
 
-            CloseHandle(_handle);
-            _disposed = true;
+            if (_handle != CURRENT_PROCESS)
+                CloseHandle(_handle);
+            _isDisposed = true;
         }
     }
 }

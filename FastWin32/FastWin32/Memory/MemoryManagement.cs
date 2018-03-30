@@ -45,14 +45,14 @@ namespace FastWin32.Memory
             //可写
             if (!writable)
                 //如果不可写
-                writableFlags = AllMemoryProtectionFlags ^ writableFlags;
+                writableFlags ^= AllMemoryProtectionFlags;
             executableFlags =
                 PAGE_EXECUTE_READ |
                 PAGE_EXECUTE_READWRITE;
             //可执行
             if (!executable)
                 //如果不可执行
-                executableFlags = AllMemoryProtectionFlags ^ executableFlags;
+                executableFlags ^= AllMemoryProtectionFlags;
             return writableFlags & executableFlags;
         }
         #endregion
@@ -101,19 +101,13 @@ namespace FastWin32.Memory
         /// <returns>分配得到的内存所在地址</returns>
         public static IntPtr AllocMemory(uint processId, uint size, bool writable, bool executable)
         {
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
 
-            processHandle = OpenProcessVMOperation(processId);
-            if (processHandle == IntPtr.Zero)
-                return IntPtr.Zero;
-            try
-            {
-                return AllocMemoryInternal(processHandle, size, ProtectionFlagsGenerator(writable, executable));
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-            }
+            using (processHandle = OpenProcessVMOperation(processId))
+                if (processHandle.IsValid)
+                    return AllocMemoryInternal(processHandle, size, ProtectionFlagsGenerator(writable, executable));
+                else
+                    return IntPtr.Zero;
         }
 
         /// <summary>
@@ -190,19 +184,13 @@ namespace FastWin32.Memory
         /// <returns></returns>
         public static bool FreeMemory(uint processId, IntPtr addr)
         {
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
 
-            processHandle = OpenProcessVMOperation(processId);
-            if (processHandle == IntPtr.Zero)
-                return false;
-            try
-            {
-                return FreeMemoryInternal(processHandle, addr);
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-            }
+            using (processHandle = OpenProcessVMOperation(processId))
+                if (processHandle.IsValid)
+                    return FreeMemoryInternal(processHandle, addr);
+                else
+                    return false;
         }
 
         /// <summary>
@@ -213,19 +201,13 @@ namespace FastWin32.Memory
         /// <param name="size">要释放内存的大小</param>
         public static bool FreeMemory(uint processId, IntPtr addr, uint size)
         {
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
 
-            processHandle = OpenProcessVMOperation(processId);
-            if (processHandle == IntPtr.Zero)
-                return false;
-            try
-            {
-                return FreeMemoryInternal(processHandle, addr, size);
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-            }
+            using (processHandle = OpenProcessVMOperation(processId))
+                if (processHandle.IsValid)
+                    return FreeMemoryInternal(processHandle, addr, size);
+                else
+                    return false;
         }
 
         /// <summary>

@@ -102,20 +102,14 @@ namespace FastWin32.Diagnostics
             if (argument != null && argument.Length >= 1024)
                 throw new ArgumentOutOfRangeException(nameof(argument) + "长度必须小于1024个字符");
 
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
             int returnValue;
 
-            processHandle = OpenProcessInjecting(processId);
-            if (processHandle == IntPtr.Zero)
-                return false;
-            try
-            {
-                return InjectManagedInternal(processHandle, assemblyPath, typeName, methodName, argument, out returnValue, false);
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-            }
+            using (processHandle = OpenProcessInjecting(processId))
+                if (processHandle.IsValid)
+                    return InjectManagedInternal(processHandle, assemblyPath, typeName, methodName, argument, out returnValue, false);
+                else
+                    return false;
         }
 
         /// <summary>
@@ -141,20 +135,16 @@ namespace FastWin32.Diagnostics
             if (argument != null && argument.Length >= 1024)
                 throw new ArgumentOutOfRangeException(nameof(argument) + "长度必须小于1024个字符");
 
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
 
-            returnValue = 0;
-            processHandle = OpenProcessInjecting(processId);
-            if (processHandle == IntPtr.Zero)
-                return false;
-            try
-            {
-                return InjectManagedInternal(processHandle, assemblyPath, typeName, methodName, argument, out returnValue, true);
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-            }
+            using (processHandle = OpenProcessInjecting(processId))
+                if (processHandle.IsValid)
+                    return InjectManagedInternal(processHandle, assemblyPath, typeName, methodName, argument, out returnValue, true);
+                else
+                {
+                    returnValue = 0;
+                    return false;
+                }
         }
 
         /// <summary>
@@ -225,27 +215,23 @@ namespace FastWin32.Diagnostics
             if (!File.Exists(dllPath))
                 throw new FileNotFoundException();
 
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
             bool isAssembly;
             string clrVersion;
 
-            processHandle = OpenProcessInjecting(processId);
-            if (processHandle == IntPtr.Zero)
-                return false;
-            try
-            {
-                dllPath = Path.GetFullPath(dllPath);
-                //获取绝对路径
-                IsAssembly(dllPath, out isAssembly, out clrVersion);
-                if (isAssembly)
-                    throw new NotSupportedException("将注入的DLL为程序集，应该调用InjectManaged方法而非调用InjectUnmanaged方法");
-                return InjectUnmanagedInternal(processHandle, dllPath);
-                //注入非托管DLL
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-            }
+            using (processHandle = OpenProcessInjecting(processId))
+                if (processHandle.IsValid)
+                {
+                    dllPath = Path.GetFullPath(dllPath);
+                    //获取绝对路径
+                    IsAssembly(dllPath, out isAssembly, out clrVersion);
+                    if (isAssembly)
+                        throw new NotSupportedException("将注入的DLL为程序集，应该调用InjectManaged方法而非调用InjectUnmanaged方法");
+                    return InjectUnmanagedInternal(processHandle, dllPath);
+                    //注入非托管DLL
+                }
+                else
+                    return false;
         }
 
         /// <summary>

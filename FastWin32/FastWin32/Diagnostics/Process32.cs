@@ -51,12 +51,13 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         public static uint GetProcessIdByThreadId(uint threadId)
         {
-            IntPtr threadHandle;
+            SafeNativeHandle threadHandle;
 
-            threadHandle = SafeOpenThread(THREAD_QUERY_INFORMATION, false, threadId);
-            if (threadHandle == IntPtr.Zero)
-                return 0;
-            return GetProcessIdOfThread(threadHandle);
+            using (threadHandle = SafeOpenThread(THREAD_QUERY_INFORMATION, false, threadId))
+                if (threadHandle.IsValid)
+                    return GetProcessIdOfThread(threadHandle);
+                else
+                    return 0;
         }
 
         /// <summary>
@@ -97,12 +98,13 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         public static string GetProcessName(uint processId)
         {
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
 
-            processHandle = OpenProcessQuery(processId);
-            if (processHandle == IntPtr.Zero)
-                return null;
-            return GetProcessNameInternal(processHandle);
+            using (processHandle = OpenProcessQuery(processId))
+                if (processHandle.IsValid)
+                    return GetProcessNameInternal(processHandle);
+                else
+                    return null;
         }
 
         /// <summary>
@@ -127,12 +129,13 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         public static string GetProcessPath(uint processId)
         {
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
 
-            processHandle = OpenProcessQuery(processId);
-            if (processHandle == IntPtr.Zero)
-                return null;
-            return GetProcessPathInternal(processHandle);
+            using (processHandle = OpenProcessQuery(processId))
+                if (processHandle.IsValid)
+                    return GetProcessPathInternal(processHandle);
+                else
+                    return null;
         }
 
         /// <summary>
@@ -158,7 +161,7 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         public static bool Is64BitProcess(uint processId, out bool is64)
         {
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
 
             if (!FastWin32Settings.Is64BitOperatingSystem)
             {
@@ -166,13 +169,14 @@ namespace FastWin32.Diagnostics
                 is64 = false;
                 return true;
             }
-            processHandle = OpenProcessQuery(processId);
-            if (processHandle == IntPtr.Zero)
-            {
-                is64 = false;
-                return false;
-            }
-            return Is64BitProcessInternal(processHandle, out is64);
+            using (processHandle = OpenProcessQuery(processId))
+                if (processHandle.IsValid)
+                    return Is64BitProcessInternal(processHandle, out is64);
+                else
+                {
+                    is64 = false;
+                    return false;
+                }
         }
 
         /// <summary>
@@ -208,12 +212,13 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         public static bool SuspendProcess(uint processId)
         {
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
 
-            processHandle = OpenProcessProcessSuspendResume(processId);
-            if (processHandle == IntPtr.Zero)
-                return false;
-            return SuspendProcessInternal(processHandle);
+            using (processHandle = OpenProcessProcessSuspendResume(processId))
+                if (processHandle.IsValid)
+                    return SuspendProcessInternal(processHandle);
+                else
+                    return false;
         }
 
         /// <summary>
@@ -233,12 +238,13 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         public static bool ResumeProcess(uint processId)
         {
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
 
-            processHandle = OpenProcessProcessSuspendResume(processId);
-            if (processHandle == IntPtr.Zero)
-                return false;
-            return ResumeProcessInternal(processHandle);
+            using (processHandle = OpenProcessProcessSuspendResume(processId))
+                if (processHandle.IsValid)
+                    return ResumeProcessInternal(processHandle);
+                else
+                    return false;
         }
 
         /// <summary>

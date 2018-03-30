@@ -133,24 +133,20 @@ namespace FastWin32.Memory
         /// <returns></returns>
         private static bool IOTemplate(uint processId, IntPtr addr, IOTemplateCallback callback)
         {
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
             bool is64;
 
-            processHandle = OpenProcessVMReadWriteQuery(processId);
-            if (processHandle == IntPtr.Zero)
-                return false;
-            if (!Process32.Is64BitProcessInternal(processHandle, out is64))
-                return false;
-            if (is64 && !Environment.Is64BitProcess)
-                throw new NotSupportedException("目标进程为64位但当前进程为32位");
-            try
-            {
-                return callback(processHandle, addr);
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-            }
+            using (processHandle = OpenProcessVMReadWriteQuery(processId))
+                if (processHandle.IsValid)
+                {
+                    if (!Process32.Is64BitProcessInternal(processHandle, out is64))
+                        return false;
+                    if (is64 && !Environment.Is64BitProcess)
+                        throw new NotSupportedException("目标进程为64位但当前进程为32位");
+                    return callback(processHandle, addr);
+                }
+                else
+                    return false;
         }
 
         /// <summary>
@@ -162,26 +158,22 @@ namespace FastWin32.Memory
         /// <returns></returns>
         private static bool IOTemplate(uint processId, Pointer p, IOTemplateCallback callback)
         {
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
             bool is64;
 
-            processHandle = OpenProcessVMReadWriteQuery(processId);
-            if (processHandle == IntPtr.Zero)
-                return false;
-            if (!Process32.Is64BitProcessInternal(processHandle, out is64))
-                return false;
-            if (is64 && !Environment.Is64BitProcess)
-                throw new NotSupportedException("目标进程为64位但当前进程为32位");
-            try
-            {
-                if (!GetPointerAddrInternal(processHandle, p))
+            using (processHandle = OpenProcessVMReadWriteQuery(processId))
+                if (processHandle.IsValid)
+                {
+                    if (!Process32.Is64BitProcessInternal(processHandle, out is64))
+                        return false;
+                    if (is64 && !Environment.Is64BitProcess)
+                        throw new NotSupportedException("目标进程为64位但当前进程为32位");
+                    if (!GetPointerAddrInternal(processHandle, p))
+                        return false;
+                    return callback(processHandle, p._lastAddr);
+                }
+                else
                     return false;
-                return callback(processHandle, p._lastAddr);
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-            }
         }
 
         /// <summary>
@@ -195,25 +187,26 @@ namespace FastWin32.Memory
         /// <returns></returns>
         private static bool IOTemplate<TValue>(uint processId, IntPtr addr, out TValue value, IOTemplateCallback<TValue> callback)
         {
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
             bool is64;
 
-            value = default(TValue);
-            processHandle = OpenProcessVMReadWriteQuery(processId);
-            if (processHandle == IntPtr.Zero)
-                return false;
-            if (!Process32.Is64BitProcessInternal(processHandle, out is64))
-                return false;
-            if (is64 && !Environment.Is64BitProcess)
-                throw new NotSupportedException("目标进程为64位但当前进程为32位");
-            try
-            {
-                return callback(processHandle, addr, out value);
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-            }
+            using (processHandle = OpenProcessVMReadWriteQuery(processId))
+                if (processHandle.IsValid)
+                {
+                    if (!Process32.Is64BitProcessInternal(processHandle, out is64))
+                    {
+                        value = default(TValue);
+                        return false;
+                    }
+                    if (is64 && !Environment.Is64BitProcess)
+                        throw new NotSupportedException("目标进程为64位但当前进程为32位");
+                    return callback(processHandle, addr, out value);
+                }
+                else
+                {
+                    value = default(TValue);
+                    return false;
+                }
         }
 
         /// <summary>
@@ -227,27 +220,31 @@ namespace FastWin32.Memory
         /// <returns></returns>
         private static bool IOTemplate<TValue>(uint processId, Pointer p, out TValue value, IOTemplateCallback<TValue> callback)
         {
-            IntPtr processHandle;
+            SafeNativeHandle processHandle;
             bool is64;
 
-            value = default(TValue);
-            processHandle = OpenProcessVMReadWriteQuery(processId);
-            if (processHandle == IntPtr.Zero)
-                return false;
-            if (!Process32.Is64BitProcessInternal(processHandle, out is64))
-                return false;
-            if (is64 && !Environment.Is64BitProcess)
-                throw new NotSupportedException("目标进程为64位但当前进程为32位");
-            try
-            {
-                if (!GetPointerAddrInternal(processHandle, p))
+            using (processHandle = OpenProcessVMReadWriteQuery(processId))
+                if (processHandle.IsValid)
+                {
+                    if (!Process32.Is64BitProcessInternal(processHandle, out is64))
+                    {
+                        value = default(TValue);
+                        return false;
+                    }
+                    if (is64 && !Environment.Is64BitProcess)
+                        throw new NotSupportedException("目标进程为64位但当前进程为32位");
+                    if (!GetPointerAddrInternal(processHandle, p))
+                    {
+                        value = default(TValue);
+                        return false;
+                    }
+                    return callback(processHandle, p._lastAddr, out value);
+                }
+                else
+                {
+                    value = default(TValue);
                     return false;
-                return callback(processHandle, p._lastAddr, out value);
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-            }
+                }
         }
         #endregion
 
