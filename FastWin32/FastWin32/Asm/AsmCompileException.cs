@@ -5,6 +5,7 @@ namespace FastWin32.Asm
     /// <summary>
     /// Asm编译/反编译错误
     /// </summary>
+    [Serializable]
     public sealed class AsmCompilerException : Exception
     {
         /// <summary>

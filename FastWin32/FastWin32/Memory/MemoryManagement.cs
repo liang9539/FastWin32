@@ -13,9 +13,9 @@ namespace FastWin32.Memory
         /// </summary>
         /// <param name="processId">进程ID</param>
         /// <returns></returns>
-        private static IntPtr OpenProcessVMOperation(uint processId)
+        private static SafeNativeHandle OpenProcessVMOperation(uint processId)
         {
-            return OpenProcess(FastWin32Settings.SeDebugPrivilege ? PROCESS_ALL_ACCESS : PROCESS_VM_OPERATION, false, processId);
+            return SafeOpenProcess(FastWin32Settings.SeDebugPrivilege ? PROCESS_ALL_ACCESS : PROCESS_VM_OPERATION, false, processId);
         }
 
         #region ProtectionFlagsGenerator

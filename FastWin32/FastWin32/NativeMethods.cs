@@ -15,7 +15,7 @@ namespace FastWin32
         /// <summary>
         /// 最大模块名长度
         /// </summary>
-        public const uint MODULENAME_MAX_LENGTH = 1024;
+        public const uint MAX_MODULE_NAME32 = 255;
 
         /// <summary>
         /// 最大路径长度
@@ -466,7 +466,7 @@ namespace FastWin32
             /// <summary>
             /// 结构体在非托管内存中大小
             /// </summary>
-            public static readonly uint Size = (uint)Marshal.SizeOf(typeof(MEMORY_BASIC_INFORMATION));
+            public static readonly uint UnmanagedSize = (uint)Marshal.SizeOf(typeof(MEMORY_BASIC_INFORMATION));
         }
         #endregion
 
@@ -532,7 +532,7 @@ namespace FastWin32
 
             public IntPtr hProcess;
 
-            public static readonly uint Size = (uint)Marshal.SizeOf(typeof(SHELLEXECUTEINFO));
+            public static readonly uint UnmanagedSize = (uint)Marshal.SizeOf(typeof(SHELLEXECUTEINFO));
         }
         #endregion
         #endregion
@@ -580,7 +580,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "ReadProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, uint* lpNumberOfBytesRead);
+        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesRead);
 
         /// <summary>
         /// 读取内存
@@ -593,7 +593,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "ReadProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out uint lpNumberOfBytesRead);
+        public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, out uint lpNumberOfBytesRead);
 
         /// <summary>
         /// 读取内存
@@ -606,7 +606,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "ReadProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, void* lpBuffer, uint nSize, uint* lpNumberOfBytesRead);
+        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, void* lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesRead);
 
         /// <summary>
         /// 读取内存
@@ -619,7 +619,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "ReadProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out byte lpBuffer, uint nSize, uint* lpNumberOfBytesRead);
+        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out byte lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesRead);
 
         /// <summary>
         /// 读取内存
@@ -632,7 +632,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "ReadProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out bool lpBuffer, uint nSize, uint* lpNumberOfBytesRead);
+        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out bool lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesRead);
 
         /// <summary>
         /// 读取内存
@@ -645,7 +645,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "ReadProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out char lpBuffer, uint nSize, uint* lpNumberOfBytesRead);
+        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out char lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesRead);
 
         /// <summary>
         /// 读取内存
@@ -658,7 +658,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "ReadProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out short lpBuffer, uint nSize, uint* lpNumberOfBytesRead);
+        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out short lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesRead);
 
         /// <summary>
         /// 读取内存
@@ -671,7 +671,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "ReadProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out ushort lpBuffer, uint nSize, uint* lpNumberOfBytesRead);
+        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out ushort lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesRead);
 
         /// <summary>
         /// 读取内存
@@ -684,7 +684,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "ReadProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out int lpBuffer, uint nSize, uint* lpNumberOfBytesRead);
+        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out int lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesRead);
 
         /// <summary>
         /// 读取内存
@@ -697,7 +697,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "ReadProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out uint lpBuffer, uint nSize, uint* lpNumberOfBytesRead);
+        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out uint lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesRead);
 
         /// <summary>
         /// 读取内存
@@ -710,7 +710,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "ReadProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out long lpBuffer, uint nSize, uint* lpNumberOfBytesRead);
+        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out long lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesRead);
 
         /// <summary>
         /// 读取内存
@@ -723,7 +723,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "ReadProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out ulong lpBuffer, uint nSize, uint* lpNumberOfBytesRead);
+        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out ulong lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesRead);
 
         /// <summary>
         /// 读取内存
@@ -736,7 +736,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "ReadProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out float lpBuffer, uint nSize, uint* lpNumberOfBytesRead);
+        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out float lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesRead);
 
         /// <summary>
         /// 读取内存
@@ -749,7 +749,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "ReadProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out double lpBuffer, uint nSize, uint* lpNumberOfBytesRead);
+        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out double lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesRead);
 
         /// <summary>
         /// 读取内存
@@ -762,7 +762,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "ReadProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out IntPtr lpBuffer, uint nSize, uint* lpNumberOfBytesRead);
+        public static unsafe extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out IntPtr lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesRead);
         #endregion
 
         #region WriteProcessMemory
@@ -777,7 +777,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "WriteProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, uint* lpNumberOfBytesWritten);
+        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesWritten);
 
         /// <summary>
         /// 写入内存
@@ -790,7 +790,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "WriteProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out uint lpNumberOfBytesWritten);
+        public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, out uint lpNumberOfBytesWritten);
 
         /// <summary>
         /// 写入内存
@@ -803,7 +803,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "WriteProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, void* lpBuffer, uint nSize, uint* lpNumberOfBytesWritten);
+        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, void* lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesWritten);
 
         /// <summary>
         /// 写入内存
@@ -816,7 +816,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "WriteProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref bool lpBuffer, uint nSize, uint* lpNumberOfBytesWritten);
+        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref bool lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesWritten);
 
         /// <summary>
         /// 写入内存
@@ -829,7 +829,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "WriteProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref byte lpBuffer, uint nSize, uint* lpNumberOfBytesWritten);
+        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref byte lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesWritten);
 
         /// <summary>
         /// 写入内存
@@ -842,7 +842,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "WriteProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref char lpBuffer, uint nSize, uint* lpNumberOfBytesWritten);
+        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref char lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesWritten);
 
         /// <summary>
         /// 写入内存
@@ -855,7 +855,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "WriteProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref short lpBuffer, uint nSize, uint* lpNumberOfBytesWritten);
+        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref short lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesWritten);
 
         /// <summary>
         /// 写入内存
@@ -868,7 +868,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "WriteProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref ushort lpBuffer, uint nSize, uint* lpNumberOfBytesWritten);
+        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref ushort lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesWritten);
 
         /// <summary>
         /// 写入内存
@@ -881,7 +881,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "WriteProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref int lpBuffer, uint nSize, uint* lpNumberOfBytesWritten);
+        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref int lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesWritten);
 
         /// <summary>
         /// 写入内存
@@ -894,7 +894,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "WriteProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref uint lpBuffer, uint nSize, uint* lpNumberOfBytesWritten);
+        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref uint lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesWritten);
 
         /// <summary>
         /// 写入内存
@@ -907,7 +907,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "WriteProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref long lpBuffer, uint nSize, uint* lpNumberOfBytesWritten);
+        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref long lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesWritten);
 
         /// <summary>
         /// 写入内存
@@ -920,7 +920,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "WriteProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref ulong lpBuffer, uint nSize, uint* lpNumberOfBytesWritten);
+        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref ulong lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesWritten);
 
         /// <summary>
         /// 写入内存
@@ -933,7 +933,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "WriteProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref float lpBuffer, uint nSize, uint* lpNumberOfBytesWritten);
+        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref float lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesWritten);
 
         /// <summary>
         /// 写入内存
@@ -946,7 +946,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "WriteProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref double lpBuffer, uint nSize, uint* lpNumberOfBytesWritten);
+        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref double lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesWritten);
 
         /// <summary>
         /// 写入内存
@@ -959,7 +959,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "WriteProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref IntPtr lpBuffer, uint nSize, uint* lpNumberOfBytesWritten);
+        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref IntPtr lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesWritten);
 
         /// <summary>
         /// 写入内存
@@ -972,7 +972,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "WriteProcessMemory", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, string lpBuffer, uint nSize, uint* lpNumberOfBytesWritten);
+        public static unsafe extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, string lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint nSize, uint* lpNumberOfBytesWritten);
         #endregion
         #endregion
 
@@ -1001,8 +1001,8 @@ namespace FastWin32
         /// <param name="hModule">模块句柄</param>
         /// <param name="lpProcName">函数名</param>
         /// <returns></returns>
-        [DllImport("kernel32.dll", BestFitMapping = true, CharSet = CharSet.Ansi, EntryPoint = "GetProcAddress", ExactSpelling = true, SetLastError = true)]
-        public static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
+        [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Ansi, EntryPoint = "GetProcAddress", ExactSpelling = true, SetLastError = true)]
+        public static extern IntPtr GetProcAddress(IntPtr hModule, [MarshalAs(UnmanagedType.LPStr)] string lpProcName);
 
         /// <summary>
         /// 加载DLL
@@ -1087,7 +1087,7 @@ namespace FastWin32
         /// <param name="flProtect">内存保护选项</param>
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "VirtualAlloc", ExactSpelling = true, SetLastError = true)]
-        public static extern IntPtr VirtualAlloc(IntPtr lpAddress, uint dwSize, uint flAllocationType, uint flProtect);
+        public static extern IntPtr VirtualAlloc(IntPtr lpAddress, [MarshalAs(UnmanagedType.SysUInt)] uint dwSize, uint flAllocationType, uint flProtect);
 
         /// <summary>
         /// 分配内存
@@ -1099,7 +1099,7 @@ namespace FastWin32
         /// <param name="flProtect">内存保护选项</param>
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "VirtualAllocEx", ExactSpelling = true, SetLastError = true)]
-        public static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, uint dwSize, uint flAllocationType, uint flProtect);
+        public static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, [MarshalAs(UnmanagedType.SysUInt)] uint dwSize, uint flAllocationType, uint flProtect);
 
         /// <summary>
         /// 在当前进程中释放内存
@@ -1110,7 +1110,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "VirtualFree", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool VirtualFree(IntPtr lpAddress, uint dwSize, uint dwFreeType);
+        public static extern bool VirtualFree(IntPtr lpAddress, [MarshalAs(UnmanagedType.SysUInt)] uint dwSize, uint dwFreeType);
 
         /// <summary>
         /// 释放内存
@@ -1122,7 +1122,7 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "VirtualFreeEx", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool VirtualFreeEx(IntPtr hProcess, IntPtr lpAddress, uint dwSize, uint dwFreeType);
+        public static extern bool VirtualFreeEx(IntPtr hProcess, IntPtr lpAddress, [MarshalAs(UnmanagedType.SysUInt)] uint dwSize, uint dwFreeType);
 
         /// <summary>
         /// 查询地址空间中内存地址的信息
@@ -1133,8 +1133,7 @@ namespace FastWin32
         /// <param name="dwLength">MEMORY_BASIC_INFORMATION结构的大小</param>
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "VirtualQueryEx", ExactSpelling = true, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress, out MEMORY_BASIC_INFORMATION lpBuffer, uint dwLength);
+        public static extern IntPtr VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress, out MEMORY_BASIC_INFORMATION lpBuffer, [MarshalAs(UnmanagedType.SysUInt)] uint dwLength);
         #endregion
 
         #region Message Functions
@@ -1159,7 +1158,7 @@ namespace FastWin32
         /// <param name="lParam">参数2</param>
         /// <returns></returns>
         [DllImport("user32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "SendMessageW", ExactSpelling = true, SetLastError = true)]
-        public static extern uint SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+        public static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
         #endregion
 
         #region Process and Thread Functions
@@ -1195,7 +1194,7 @@ namespace FastWin32
         /// <param name="lpThreadId">指向接收线程标识符的变量的指针</param>
         /// <returns>如果函数成功，返回值是新线程的句柄，否则返回值是IntPtr.Zero</returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "CreateRemoteThread", ExactSpelling = true, SetLastError = true)]
-        public static unsafe extern IntPtr CreateRemoteThread(IntPtr hProcess, void* lpThreadAttributes, uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, uint* lpThreadId);
+        public static unsafe extern IntPtr CreateRemoteThread(IntPtr hProcess, void* lpThreadAttributes, [MarshalAs(UnmanagedType.SysUInt)] uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, uint* lpThreadId);
 
         /// <summary>
         /// 获取当前进程ID
@@ -1262,9 +1261,38 @@ namespace FastWin32
         /// <returns></returns>
         [DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "OpenThread", ExactSpelling = true, SetLastError = true)]
         public static extern IntPtr OpenThread(uint dwDesiredAccess, bool bInheritHandle, uint dwThreadId);
+
+        /// <summary>
+        /// 打开进程
+        /// </summary>
+        /// <param name="dwDesiredAccess">权限</param>
+        /// <param name="bInheritHandle">是否继承</param>
+        /// <param name="dwProcessId">进程ID</param>
+        /// <returns></returns>
+        public static SafeNativeHandle SafeOpenProcess(uint dwDesiredAccess, bool bInheritHandle, uint dwProcessId) => OpenProcess(dwDesiredAccess, bInheritHandle, dwProcessId);
+
+        /// <summary>
+        /// 打开线程
+        /// </summary>
+        /// <param name="dwDesiredAccess">权限</param>
+        /// <param name="bInheritHandle">是否继承</param>
+        /// <param name="dwThreadId">线程ID</param>
+        /// <returns></returns>
+        public static SafeNativeHandle SafeOpenThread(uint dwDesiredAccess, bool bInheritHandle, uint dwThreadId) => OpenThread(dwDesiredAccess, bInheritHandle, dwThreadId);
         #endregion
 
         #region PSAPI Functions
+        /// <summary>
+        /// 遍历所有进程ID
+        /// </summary>
+        /// <param name="pProcessIds">进程ID</param>
+        /// <param name="cb"></param>
+        /// <param name="pBytesReturned"></param>
+        /// <returns></returns>
+        [DllImport("psapi.dll", BestFitMapping = false, CharSet = CharSet.Unicode, EntryPoint = "EnumProcesses", ExactSpelling = true, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool EnumProcesses(ref uint pProcessIds, uint cb, out uint pBytesReturned);
+
         /// <summary>
         /// 遍历进程的所有模块
         /// </summary>
@@ -1489,7 +1517,7 @@ namespace FastWin32
             List<string> methodList;
             Type dllImportType;
             DllImportAttribute[] dllImportAttributes;
-            IntPtr hModule;
+            IntPtr moduleHandle;
 
             methodList = new List<string>();
             dllImportType = typeof(DllImportAttribute);
@@ -1498,10 +1526,10 @@ namespace FastWin32
                 dllImportAttributes = (DllImportAttribute[])methodInfo.GetCustomAttributes(dllImportType, false);
                 if (dllImportAttributes == null || dllImportAttributes.Length == 0)
                     continue;
-                hModule = LoadLibrary(dllImportAttributes[0].Value);
-                if (hModule == IntPtr.Zero)
+                moduleHandle = LoadLibrary(dllImportAttributes[0].Value);
+                if (moduleHandle == IntPtr.Zero)
                     methodList.Add(dllImportAttributes[0].EntryPoint);
-                if (GetProcAddress(hModule, dllImportAttributes[0].EntryPoint) == IntPtr.Zero)
+                if (GetProcAddress(moduleHandle, dllImportAttributes[0].EntryPoint) == IntPtr.Zero)
                     methodList.Add(dllImportAttributes[0].EntryPoint);
             }
             return methodList.ToArray();

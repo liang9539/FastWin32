@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
 namespace FastWin32
 {
@@ -7,6 +8,11 @@ namespace FastWin32
     /// </summary>
     public static class FastWin32Settings
     {
+        /// <summary>
+        /// 确定当前操作系统是否为 64 位操作系统。
+        /// </summary>
+        public static readonly bool Is64BitOperatingSystem = Environment.Is64BitOperatingSystem;
+
         /// <summary>
         /// SeDebugPrivilege特权
         /// </summary>

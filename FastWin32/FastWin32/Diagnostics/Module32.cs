@@ -33,9 +33,9 @@ namespace FastWin32.Diagnostics
         /// </summary>
         /// <param name="processId">进程ID</param>
         /// <returns></returns>
-        private static IntPtr OpenProcessVMReadQuery(uint processId)
+        private static SafeNativeHandle OpenProcessVMReadQuery(uint processId)
         {
-            return OpenProcess(FastWin32Settings.SeDebugPrivilege ? PROCESS_ALL_ACCESS : PROCESS_VM_READ | PROCESS_QUERY_INFORMATION, false, processId);
+            return SafeOpenProcess(FastWin32Settings.SeDebugPrivilege ? PROCESS_ALL_ACCESS : PROCESS_VM_READ | PROCESS_QUERY_INFORMATION, false, processId);
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace FastWin32.Diagnostics
             IntPtr[] moduleHandles;
             StringBuilder moduleNameBuffer;
 
-            if (!Process32.Is64ProcessInternal(processHandle, out is64))
+            if (!Process32.Is64BitProcessInternal(processHandle, out is64))
                 return IntPtr.Zero;
             isXP = Environment.OSVersion.Version.Major == 5;
             if (isXP)
@@ -156,10 +156,10 @@ namespace FastWin32.Diagnostics
                         //获取所有模块句柄
                         return IntPtr.Zero;
                 }
-            moduleNameBuffer = new StringBuilder((int)MODULENAME_MAX_LENGTH);
+            moduleNameBuffer = new StringBuilder((int)MAX_MODULE_NAME32);
             for (int i = 0; i < moduleHandles.Length; i++)
             {
-                if (!GetModuleBaseName(processHandle, moduleHandles[i], moduleNameBuffer, MODULENAME_MAX_LENGTH))
+                if (!GetModuleBaseName(processHandle, moduleHandles[i], moduleNameBuffer, MAX_MODULE_NAME32))
                     return IntPtr.Zero;
                 if (moduleNameBuffer.ToString().Equals(moduleName, StringComparison.OrdinalIgnoreCase))
                     return moduleHandles[i];
@@ -194,7 +194,7 @@ namespace FastWin32.Diagnostics
                 return false;
             try
             {
-                if (!Process32.Is64ProcessInternal(processHandle, out is64))
+                if (!Process32.Is64BitProcessInternal(processHandle, out is64))
                     return false;
                 isXP = Environment.OSVersion.Version.Major == 5;
                 if (isXP)
@@ -223,11 +223,11 @@ namespace FastWin32.Diagnostics
                             //获取所有模块句柄
                             return false;
                     }
-                moduleName = getModuleName ? new StringBuilder((int)MODULENAME_MAX_LENGTH) : null;
+                moduleName = getModuleName ? new StringBuilder((int)MAX_MODULE_NAME32) : null;
                 filePath = getFilePath ? new StringBuilder((int)MAX_PATH) : null;
                 for (int i = 0; i < moduleHandles.Length; i++)
                 {
-                    if (getModuleName && !GetModuleBaseName(processHandle, moduleHandles[i], moduleName, MODULENAME_MAX_LENGTH))
+                    if (getModuleName && !GetModuleBaseName(processHandle, moduleHandles[i], moduleName, MAX_MODULE_NAME32))
                         return false;
                     if (getFilePath && GetModuleFileName(processHandle, filePath, MAX_PATH) == 0)
                         return false;
@@ -327,7 +327,7 @@ namespace FastWin32.Diagnostics
                 return IntPtr.Zero;
             if (!MemoryIO.ReadInt32Internal(processHandle, moduleHandle + 0x3C, out ntHeaderOffset))
                 return IntPtr.Zero;
-            if (!Process32.Is64ProcessInternal(processHandle, out is64))
+            if (!Process32.Is64BitProcessInternal(processHandle, out is64))
                 return IntPtr.Zero;
             if (is64)
             {
@@ -454,7 +454,7 @@ namespace FastWin32.Diagnostics
 
             if (!MemoryIO.ReadInt32Internal(processHandle, moduleHandle + 0x3C, out ntHeaderOffset))
                 return false;
-            if (!Process32.Is64ProcessInternal(processHandle, out is64))
+            if (!Process32.Is64BitProcessInternal(processHandle, out is64))
                 return false;
             if (is64)
             {

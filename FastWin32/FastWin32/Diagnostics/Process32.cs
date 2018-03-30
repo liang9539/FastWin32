@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using static FastWin32.NativeMethods;
 
@@ -15,9 +16,9 @@ namespace FastWin32.Diagnostics
         /// </summary>
         /// <param name="processId">进程ID</param>
         /// <returns></returns>
-        private static IntPtr OpenProcessVMReadQuery(uint processId)
+        private static SafeNativeHandle OpenProcessQuery(uint processId)
         {
-            return OpenProcess(FastWin32Settings.SeDebugPrivilege ? PROCESS_ALL_ACCESS : PROCESS_VM_READ | PROCESS_QUERY_INFORMATION, false, processId);
+            return SafeOpenProcess(FastWin32Settings.SeDebugPrivilege ? PROCESS_ALL_ACCESS : PROCESS_QUERY_INFORMATION, false, processId);
         }
 
         /// <summary>
@@ -25,9 +26,9 @@ namespace FastWin32.Diagnostics
         /// </summary>
         /// <param name="processId">进程ID</param>
         /// <returns></returns>
-        private static IntPtr OpenProcessProcessSuspendResume(uint processId)
+        private static SafeNativeHandle OpenProcessProcessSuspendResume(uint processId)
         {
-            return OpenProcess(FastWin32Settings.SeDebugPrivilege ? PROCESS_ALL_ACCESS : PROCESS_SUSPEND_RESUME, false, processId);
+            return SafeOpenProcess(FastWin32Settings.SeDebugPrivilege ? PROCESS_ALL_ACCESS : PROCESS_SUSPEND_RESUME, false, processId);
         }
 
         /// <summary>
@@ -52,7 +53,8 @@ namespace FastWin32.Diagnostics
         {
             IntPtr threadHandle;
 
-            if ((threadHandle = OpenThread(THREAD_QUERY_INFORMATION, false, threadId)) == IntPtr.Zero)
+            threadHandle = SafeOpenThread(THREAD_QUERY_INFORMATION, false, threadId);
+            if (threadHandle == IntPtr.Zero)
                 return 0;
             return GetProcessIdOfThread(threadHandle);
         }
@@ -67,6 +69,28 @@ namespace FastWin32.Diagnostics
         }
 
         /// <summary>
+        /// 获取所有进程ID，失败返回null
+        /// </summary>
+        /// <returns></returns>
+        public static uint[] GetAllProcessIds()
+        {
+            uint[] processIds;
+            uint bytesReturned;
+
+            processIds = null;
+            do
+            {
+                if (processIds == null)
+                    processIds = new uint[0x200];
+                else
+                    processIds = new uint[processIds.Length * 2];
+                if (!EnumProcesses(ref processIds[0], (uint)(processIds.Length * 4), out bytesReturned))
+                    return null;
+            } while (bytesReturned == processIds.Length * 4);
+            return processIds.Take((int)bytesReturned / 4).ToArray();
+        }
+
+        /// <summary>
         /// 获取进程名
         /// </summary>
         /// <param name="processId">进程ID</param>
@@ -75,7 +99,7 @@ namespace FastWin32.Diagnostics
         {
             IntPtr processHandle;
 
-            processHandle = OpenProcessVMReadQuery(processId);
+            processHandle = OpenProcessQuery(processId);
             if (processHandle == IntPtr.Zero)
                 return null;
             return GetProcessNameInternal(processHandle);
@@ -88,12 +112,12 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         internal static string GetProcessNameInternal(IntPtr processHandle)
         {
-            StringBuilder stringBuilder;
+            StringBuilder filePath;
 
-            stringBuilder = new StringBuilder((int)MODULENAME_MAX_LENGTH);
-            if (GetProcessImageFileName(processHandle, stringBuilder, (int)MODULENAME_MAX_LENGTH) == 0)
+            filePath = new StringBuilder((int)MAX_MODULE_NAME32);
+            if (GetProcessImageFileName(processHandle, filePath, (int)MAX_MODULE_NAME32) == 0)
                 return null;
-            return Path.GetFileName(stringBuilder.ToString());
+            return Path.GetFileName(filePath.ToString());
         }
 
         /// <summary>
@@ -105,10 +129,10 @@ namespace FastWin32.Diagnostics
         {
             IntPtr processHandle;
 
-            processHandle = OpenProcessVMReadQuery(processId);
+            processHandle = OpenProcessQuery(processId);
             if (processHandle == IntPtr.Zero)
                 return null;
-            return GetProcessNameInternal(processHandle);
+            return GetProcessPathInternal(processHandle);
         }
 
         /// <summary>
@@ -118,12 +142,12 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         internal static string GetProcessPathInternal(IntPtr processHandle)
         {
-            StringBuilder stringBuilder;
+            StringBuilder filePath;
 
-            stringBuilder = new StringBuilder((int)MAX_PATH);
-            if (GetProcessImageFileName(processHandle, stringBuilder, MAX_PATH) == 0)
+            filePath = new StringBuilder((int)MAX_PATH);
+            if (GetProcessImageFileName(processHandle, filePath, MAX_PATH) == 0)
                 return null;
-            return stringBuilder.ToString();
+            return filePath.ToString();
         }
 
         /// <summary>
@@ -132,23 +156,23 @@ namespace FastWin32.Diagnostics
         /// <param name="processId">进程ID</param>
         /// <param name="is64">是否为64位进程</param>
         /// <returns></returns>
-        public static bool Is64Process(uint processId, out bool is64)
+        public static bool Is64BitProcess(uint processId, out bool is64)
         {
             IntPtr processHandle;
 
-            if (!Environment.Is64BitOperatingSystem)
+            if (!FastWin32Settings.Is64BitOperatingSystem)
             {
                 //不是64位系统肯定不会是64位进程
                 is64 = false;
                 return true;
             }
-            processHandle = OpenProcessVMReadQuery(processId);
+            processHandle = OpenProcessQuery(processId);
             if (processHandle == IntPtr.Zero)
             {
                 is64 = false;
                 return false;
             }
-            return Is64ProcessInternal(processHandle, out is64);
+            return Is64BitProcessInternal(processHandle, out is64);
         }
 
         /// <summary>
@@ -157,11 +181,11 @@ namespace FastWin32.Diagnostics
         /// <param name="processHandle">进程句柄</param>
         /// <param name="is64">是否为64位进程</param>
         /// <returns></returns>
-        internal static bool Is64ProcessInternal(IntPtr processHandle, out bool is64)
+        internal static bool Is64BitProcessInternal(IntPtr processHandle, out bool is64)
         {
             bool isWow64;
 
-            if (!Environment.Is64BitOperatingSystem)
+            if (!FastWin32Settings.Is64BitOperatingSystem)
             {
                 //不是64位系统肯定不会是64位进程
                 is64 = false;
@@ -242,7 +266,7 @@ namespace FastWin32.Diagnostics
                 return;
             shellExecuteInfo = new SHELLEXECUTEINFO
             {
-                cbSize = SHELLEXECUTEINFO.Size,
+                cbSize = SHELLEXECUTEINFO.UnmanagedSize,
                 hwnd = windowHandle,
                 lpVerb = "runas",
                 lpFile = filePath.ToString(),

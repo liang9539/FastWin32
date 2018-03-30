@@ -75,9 +75,9 @@ namespace FastWin32.Diagnostics
         /// </summary>
         /// <param name="processId">进程句柄</param>
         /// <returns></returns>
-        private static IntPtr OpenProcessInjecting(uint processId)
+        private static SafeNativeHandle OpenProcessInjecting(uint processId)
         {
-            return OpenProcess(FastWin32Settings.SeDebugPrivilege ? PROCESS_ALL_ACCESS : PROCESS_CREATE_THREAD | PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_QUERY_INFORMATION, false, processId);
+            return SafeOpenProcess(FastWin32Settings.SeDebugPrivilege ? PROCESS_ALL_ACCESS : PROCESS_CREATE_THREAD | PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_QUERY_INFORMATION, false, processId);
         }
 
         /// <summary>
@@ -183,7 +183,7 @@ namespace FastWin32.Diagnostics
             IsAssembly(assemblyPath, out isAssembly, out clrVersion);
             if (!isAssembly)
                 throw new NotSupportedException("将注入的DLL为不是程序集，应该调用InjectUnmanaged方法而非调用InjectManaged方法");
-            if (!Process32.Is64ProcessInternal(processHandle, out is64))
+            if (!Process32.Is64BitProcessInternal(processHandle, out is64))
                 return false;
             if (!InjectUnmanagedInternal(processHandle, Path.Combine(GetSystemPath(is64), "mscoree.dll")))
                 return false;
@@ -262,7 +262,7 @@ namespace FastWin32.Diagnostics
             IntPtr threadHandle;
             uint exitCode;
 
-            if (!Process32.Is64ProcessInternal(processHandle, out is64))
+            if (!Process32.Is64BitProcessInternal(processHandle, out is64))
                 return false;
             pLoadLibrary = Module32.GetProcAddressInternal(processHandle, "kernel32.dll", "LoadLibraryW");
             //获取LoadLibrary的函数地址
@@ -295,7 +295,7 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         private static string GetSystemPath(bool is64)
         {
-            return Path.Combine(Environment.GetEnvironmentVariable("SystemRoot"), (!Environment.Is64BitOperatingSystem || is64) ? "System32" : "SysWOW64");
+            return Path.Combine(Environment.GetEnvironmentVariable("SystemRoot"), (!FastWin32Settings.Is64BitOperatingSystem || is64) ? "System32" : "SysWOW64");
         }
 
         /// <summary>
@@ -316,7 +316,7 @@ namespace FastWin32.Diagnostics
             IntPtr pCorBindToRuntimeEx;
             IntPtr pCLRCreateInstance;
 
-            if (!Process32.Is64ProcessInternal(processHandle, out is64))
+            if (!Process32.Is64BitProcessInternal(processHandle, out is64))
                 return IntPtr.Zero;
             asm = GetAsmCommon(clrVersion, assemblyPath, typeName, methodName, argument);
             pFunction = MemoryManagement.AllocMemoryInternal(processHandle, AsmSize, PAGE_EXECUTE_READWRITE);
@@ -372,9 +372,10 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         private static byte[] GetAsmCommon(string clrVersion, string assemblyPath, string typeName, string methodName, string argument)
         {
+            MemoryStream memoryStream;
             byte[] bytes;
 
-            using (MemoryStream memoryStream = new MemoryStream(AsmSize))
+            using (memoryStream = new MemoryStream(AsmSize))
             {
                 bytes = Encoding.Unicode.GetBytes(assemblyPath);
                 memoryStream.Position = AssemblyPathOffset;
@@ -1383,9 +1384,11 @@ namespace FastWin32.Diagnostics
         /// <param name="clrVersion">CLR版本</param>
         private static void IsAssembly(string path, out bool isAssembly, out string clrVersion)
         {
+            BinaryReader binaryReader;
+
             try
             {
-                using (BinaryReader binaryReader = new BinaryReader(new FileStream(path, FileMode.Open, FileAccess.Read)))
+                using (binaryReader = new BinaryReader(new FileStream(path, FileMode.Open, FileAccess.Read)))
                     clrVersion = GetVersionString(binaryReader);
                 isAssembly = true;
             }
@@ -1403,14 +1406,14 @@ namespace FastWin32.Diagnostics
         /// <returns></returns>
         private static string GetVersionString(BinaryReader binaryReader)
         {
-            uint ntHeaderOffset;
+            uint peOffset;
             bool is64;
             Section[] sections;
             uint rva;
             Section? section;
 
-            GetPEInfo(binaryReader, out ntHeaderOffset, out is64);
-            binaryReader.BaseStream.Position = ntHeaderOffset + (is64 ? 0xF8 : 0xE8);
+            GetPEInfo(binaryReader, out peOffset, out is64);
+            binaryReader.BaseStream.Position = peOffset + (is64 ? 0xF8 : 0xE8);
             rva = binaryReader.ReadUInt32();
             //.Net MetaData Directory RVA
             if (rva == 0)
@@ -1422,14 +1425,14 @@ namespace FastWin32.Diagnostics
             binaryReader.BaseStream.Position = section.Value.PointerToRawData + rva - section.Value.VirtualAddress + 0x8;
             //.Net MetaData Directory FileOffset
             rva = binaryReader.ReadUInt32();
-            //.Net MetaData Header RVA
+            //.Net MetaData RVA
             if (rva == 0)
                 throw new BadImageFormatException("文件不是程序集");
             section = GetSection(rva, sections);
             if (section == null)
                 throw new InvalidDataException("未知格式的二进制文件");
             binaryReader.BaseStream.Position = section.Value.PointerToRawData + rva - section.Value.VirtualAddress + 0xC;
-            //.Net MetaData Header FileOffset
+            //.Net MetaData FileOffset
             return Encoding.UTF8.GetString(binaryReader.ReadBytes(binaryReader.ReadInt32() - 2));
         }
 
@@ -1437,15 +1440,15 @@ namespace FastWin32.Diagnostics
         /// 获取PE信息
         /// </summary>
         /// <param name="binaryReader"></param>
-        /// <param name="ntHeaderOffset"></param>
+        /// <param name="peOffset"></param>
         /// <param name="is64"></param>
-        private static void GetPEInfo(BinaryReader binaryReader, out uint ntHeaderOffset, out bool is64)
+        private static void GetPEInfo(BinaryReader binaryReader, out uint peOffset, out bool is64)
         {
             ushort machine;
 
             binaryReader.BaseStream.Position = 0x3C;
-            ntHeaderOffset = binaryReader.ReadUInt32();
-            binaryReader.BaseStream.Position = ntHeaderOffset + 0x4;
+            peOffset = binaryReader.ReadUInt32();
+            binaryReader.BaseStream.Position = peOffset + 0x4;
             machine = binaryReader.ReadUInt16();
             if (machine != 0x14C && machine != 0x8664)
                 throw new InvalidDataException("未知格式的二进制文件");
