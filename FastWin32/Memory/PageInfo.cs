@@ -1,5 +1,6 @@
 ﻿using System;
 using static FastWin32.NativeMethods;
+using size_t = System.IntPtr;
 
 namespace FastWin32.Memory
 {
@@ -16,7 +17,7 @@ namespace FastWin32.Memory
         /// <summary>
         /// 大小
         /// </summary>
-        public uint Size { get; }
+        public size_t Size { get; }
 
         /// <summary>
         /// 保护选项
@@ -31,7 +32,7 @@ namespace FastWin32.Memory
         internal PageInfo(MEMORY_BASIC_INFORMATION mbi)
         {
             Address = mbi.BaseAddress;
-            Size = (uint)mbi.RegionSize;
+            Size = mbi.RegionSize;
             Protect = mbi.Protect;
             Type = mbi.Type;
         }
@@ -45,7 +46,7 @@ namespace FastWin32.Memory
             bool is64;
 
             is64 = (ulong)Address > uint.MaxValue;
-            return $"Address=0x{Address.ToString(is64 ? "X16" : "X8")} Size=0x{Size.ToString("X8")}";
+            return $"Address=0x{Address.ToString(is64 ? "X16" : "X8")} Size=0x{Size.ToString(is64 ? "X16" : "X8")}";
         }
     }
 }

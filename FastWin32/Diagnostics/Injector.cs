@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using FastWin32.Memory;
 using static FastWin32.NativeMethods;
+using size_t = System.IntPtr;
 
 namespace FastWin32.Diagnostics
 {
@@ -182,7 +183,7 @@ namespace FastWin32.Diagnostics
             //获取远程进程中启动CLR的函数指针
             if (pFunction == IntPtr.Zero)
                 return false;
-            threadHandle = CreateRemoteThread(processHandle, null, 0, pFunction, pFunction + ReturnValueOffset, 0, null);
+            threadHandle = CreateRemoteThread(processHandle, null, size_t.Zero, pFunction, pFunction + ReturnValueOffset, 0, null);
             if (threadHandle == IntPtr.Zero)
                 return false;
             if (wait)
@@ -194,7 +195,7 @@ namespace FastWin32.Diagnostics
                 if (!MemoryIO.ReadInt32Internal(processHandle, pFunction + ReturnValueOffset, out returnValue))
                     return false;
                 //获取程序集中被调用方法的返回值
-                if (!MemoryManagement.FreeMemoryInternal(processHandle, pFunction))
+                if (!MemoryManagement.FreeMemoryExInternal(processHandle, pFunction))
                     return false;
                 return (int)exitCode >= 0;
                 //ICLRRuntimeHost::ExecuteInDefaultAppDomain返回S_OK（0）表示成功。HRESULT不能直接比较，大于等于0就是成功
@@ -252,14 +253,14 @@ namespace FastWin32.Diagnostics
                 return false;
             pLoadLibrary = Module32.GetProcAddressInternal(processHandle, "kernel32.dll", "LoadLibraryW");
             //获取LoadLibrary的函数地址
-            pDllPath = MemoryManagement.AllocMemoryInternal(processHandle, (uint)dllPath.Length * 2 + 2, PAGE_EXECUTE_READ);
+            pDllPath = MemoryManagement.AllocMemoryExInternal(processHandle, (size_t)(dllPath.Length * 2 + 2), PAGE_EXECUTE_READ);
             try
             {
                 if (pDllPath == IntPtr.Zero)
                     return false;
                 if (!MemoryIO.WriteStringInternal(processHandle, pDllPath, dllPath))
                     return false;
-                threadHandle = CreateRemoteThread(processHandle, null, 0, pLoadLibrary, pDllPath, 0, null);
+                threadHandle = CreateRemoteThread(processHandle, null, size_t.Zero, pLoadLibrary, pDllPath, 0, null);
                 if (threadHandle == IntPtr.Zero)
                     return false;
                 WaitForSingleObject(threadHandle, INFINITE);
@@ -270,7 +271,7 @@ namespace FastWin32.Diagnostics
             }
             finally
             {
-                MemoryManagement.FreeMemoryInternal(processHandle, pDllPath);
+                MemoryManagement.FreeMemoryExInternal(processHandle, pDllPath);
             }
         }
 
@@ -305,7 +306,7 @@ namespace FastWin32.Diagnostics
             if (!Process32.Is64BitProcessInternal(processHandle, out is64))
                 return IntPtr.Zero;
             asm = GetAsmCommon(clrVersion, assemblyPath, typeName, methodName, argument);
-            pFunction = MemoryManagement.AllocMemoryInternal(processHandle, AsmSize, PAGE_EXECUTE_READWRITE);
+            pFunction = MemoryManagement.AllocMemoryExInternal(processHandle, (size_t)AsmSize, PAGE_EXECUTE_READWRITE);
             if (pFunction == IntPtr.Zero)
                 return IntPtr.Zero;
             try
@@ -341,7 +342,7 @@ namespace FastWin32.Diagnostics
             }
             catch
             {
-                MemoryManagement.FreeMemoryInternal(processHandle, pFunction);
+                MemoryManagement.FreeMemoryExInternal(processHandle, pFunction);
                 return IntPtr.Zero;
             }
             return pFunction;

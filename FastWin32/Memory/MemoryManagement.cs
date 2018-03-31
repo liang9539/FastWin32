@@ -1,5 +1,6 @@
 ﻿using System;
 using static FastWin32.NativeMethods;
+using size_t = System.IntPtr;
 
 namespace FastWin32.Memory
 {
@@ -63,7 +64,7 @@ namespace FastWin32.Memory
         /// </summary>
         /// <param name="size">要分配内存的大小</param>
         /// <returns>分配得到的内存所在地址</returns>
-        public static IntPtr AllocMemory(uint size)
+        public static IntPtr AllocMemory(size_t size)
         {
             return AllocMemory(size, true, false);
         }
@@ -75,7 +76,7 @@ namespace FastWin32.Memory
         /// <param name="writable">可写</param>
         /// <param name="executable">可执行</param>
         /// <returns>分配得到的内存所在地址</returns>
-        public static IntPtr AllocMemory(uint size, bool writable, bool executable)
+        public static IntPtr AllocMemory(size_t size, bool writable, bool executable)
         {
             return AllocMemoryInternal(size, ProtectionFlagsGenerator(writable, executable));
         }
@@ -86,9 +87,9 @@ namespace FastWin32.Memory
         /// <param name="processId">进程ID</param>
         /// <param name="size">要分配内存的大小</param>
         /// <returns>分配得到的内存所在地址</returns>
-        public static IntPtr AllocMemory(uint processId, uint size)
+        public static IntPtr AllocMemoryEx(uint processId, size_t size)
         {
-            return AllocMemory(processId, size, true, false);
+            return AllocMemoryEx(processId, size, true, false);
         }
 
         /// <summary>
@@ -99,13 +100,13 @@ namespace FastWin32.Memory
         /// <param name="writable">可写</param>
         /// <param name="executable">可执行</param>
         /// <returns>分配得到的内存所在地址</returns>
-        public static IntPtr AllocMemory(uint processId, uint size, bool writable, bool executable)
+        public static IntPtr AllocMemoryEx(uint processId, size_t size, bool writable, bool executable)
         {
             SafeNativeHandle processHandle;
 
             using (processHandle = OpenProcessVMOperation(processId))
                 if (processHandle.IsValid)
-                    return AllocMemoryInternal(processHandle, size, ProtectionFlagsGenerator(writable, executable));
+                    return AllocMemoryExInternal(processHandle, size, ProtectionFlagsGenerator(writable, executable));
                 else
                     return IntPtr.Zero;
         }
@@ -115,7 +116,7 @@ namespace FastWin32.Memory
         /// </summary>
         /// <param name="size">要分配内存的大小</param>
         /// <returns>分配得到的内存所在地址</returns>
-        internal static IntPtr AllocMemoryInternal(uint size)
+        internal static IntPtr AllocMemoryInternal(size_t size)
         {
             return VirtualAlloc(IntPtr.Zero, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         }
@@ -126,7 +127,7 @@ namespace FastWin32.Memory
         /// <param name="size">要分配内存的大小</param>
         /// <param name="flags">内存保护选项</param>
         /// <returns>分配得到的内存所在地址</returns>
-        internal static IntPtr AllocMemoryInternal(uint size, uint flags)
+        internal static IntPtr AllocMemoryInternal(size_t size, uint flags)
         {
             return VirtualAlloc(IntPtr.Zero, size, MEM_COMMIT | MEM_RESERVE, flags);
         }
@@ -137,7 +138,7 @@ namespace FastWin32.Memory
         /// <param name="processHandle">进程句柄</param>
         /// <param name="size">要分配内存的大小</param>
         /// <returns>分配得到的内存所在地址</returns>
-        internal static IntPtr AllocMemoryInternal(IntPtr processHandle, uint size)
+        internal static IntPtr AllocMemoryExInternal(IntPtr processHandle, size_t size)
         {
             return VirtualAllocEx(processHandle, IntPtr.Zero, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         }
@@ -149,7 +150,7 @@ namespace FastWin32.Memory
         /// <param name="size">要分配内存的大小</param>
         /// <param name="flags">内存保护选项</param>
         /// <returns>分配得到的内存所在地址</returns>
-        internal static IntPtr AllocMemoryInternal(IntPtr processHandle, uint size, uint flags)
+        internal static IntPtr AllocMemoryExInternal(IntPtr processHandle, size_t size, uint flags)
         {
             return VirtualAllocEx(processHandle, IntPtr.Zero, size, MEM_COMMIT | MEM_RESERVE, flags);
         }
@@ -171,7 +172,7 @@ namespace FastWin32.Memory
         /// </summary>
         /// <param name="addr">指定释放内存的地址</param>
         /// <param name="size">要释放内存的大小</param>
-        public static bool FreeMemory(IntPtr addr, uint size)
+        public static bool FreeMemory(IntPtr addr, size_t size)
         {
             return FreeMemoryInternal(addr, size);
         }
@@ -182,7 +183,7 @@ namespace FastWin32.Memory
         /// <param name="processId">进程ID</param>
         /// <param name="addr">指定释放内存的地址</param>
         /// <returns></returns>
-        public static bool FreeMemory(uint processId, IntPtr addr)
+        public static bool FreeMemoryEx(uint processId, IntPtr addr)
         {
             SafeNativeHandle processHandle;
 
@@ -199,13 +200,13 @@ namespace FastWin32.Memory
         /// <param name="processId">进程ID</param>
         /// <param name="addr">指定释放内存的地址</param>
         /// <param name="size">要释放内存的大小</param>
-        public static bool FreeMemory(uint processId, IntPtr addr, uint size)
+        public static bool FreeMemoryEx(uint processId, IntPtr addr, size_t size)
         {
             SafeNativeHandle processHandle;
 
             using (processHandle = OpenProcessVMOperation(processId))
                 if (processHandle.IsValid)
-                    return FreeMemoryInternal(processHandle, addr, size);
+                    return FreeMemoryExInternal(processHandle, addr, size);
                 else
                     return false;
         }
@@ -217,7 +218,7 @@ namespace FastWin32.Memory
         /// <returns></returns>
         internal static bool FreeMemoryInternal(IntPtr addr)
         {
-            return VirtualFree(addr, 0, MEM_RELEASE);
+            return VirtualFree(addr, size_t.Zero, MEM_RELEASE);
         }
 
         /// <summary>
@@ -225,7 +226,7 @@ namespace FastWin32.Memory
         /// </summary>
         /// <param name="addr">指定释放内存的地址</param>
         /// <param name="size">要释放内存的大小</param>
-        internal static bool FreeMemoryInternal(IntPtr addr, uint size)
+        internal static bool FreeMemoryInternal(IntPtr addr, size_t size)
         {
             return VirtualFree(addr, size, MEM_DECOMMIT);
         }
@@ -236,9 +237,9 @@ namespace FastWin32.Memory
         /// <param name="processHandle">进程句柄</param>
         /// <param name="addr">指定释放内存的地址</param>
         /// <returns></returns>
-        internal static bool FreeMemoryInternal(IntPtr processHandle, IntPtr addr)
+        internal static bool FreeMemoryExInternal(IntPtr processHandle, IntPtr addr)
         {
-            return VirtualFreeEx(processHandle, addr, 0, MEM_RELEASE);
+            return VirtualFreeEx(processHandle, addr, size_t.Zero, MEM_RELEASE);
         }
 
         /// <summary>
@@ -247,7 +248,7 @@ namespace FastWin32.Memory
         /// <param name="processHandle">进程句柄</param>
         /// <param name="addr">指定释放内存的地址</param>
         /// <param name="size">要释放内存的大小</param>
-        internal static bool FreeMemoryInternal(IntPtr processHandle, IntPtr addr, uint size)
+        internal static bool FreeMemoryExInternal(IntPtr processHandle, IntPtr addr, size_t size)
         {
             return VirtualFreeEx(processHandle, addr, size, MEM_DECOMMIT);
         }

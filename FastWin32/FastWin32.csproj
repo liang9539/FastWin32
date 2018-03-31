@@ -23,6 +23,7 @@
     <DocumentationFile>bin\Debug\FastWin32.xml</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
     <LangVersion>default</LangVersion>
+    <NoWarn>IDE0001</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -36,6 +37,7 @@
     <DocumentationFile>bin\Release\FastWin32.xml</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
     <LangVersion>default</LangVersion>
+    <NoWarn>IDE0001</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>

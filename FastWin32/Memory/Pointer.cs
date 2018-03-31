@@ -25,11 +25,11 @@ namespace FastWin32.Memory
     {
         internal string _moduleName;
 
-        internal int _moduleOffset;
+        internal uint _moduleOffset;
 
         internal IntPtr _baseAddr;
 
-        internal int[] _offset;
+        internal uint[] _offset;
 
         internal PointerType _type;
 
@@ -43,7 +43,7 @@ namespace FastWin32.Memory
         /// <summary>
         /// 模块偏移
         /// </summary>
-        public int ModuleOffset => _type == PointerType.ModuleName_Offset ? _moduleOffset : throw new NotSupportedException("使用了地址+偏移，未使用模块偏移");
+        public uint ModuleOffset => _type == PointerType.ModuleName_Offset ? _moduleOffset : throw new NotSupportedException("使用了地址+偏移，未使用模块偏移");
 
         /// <summary>
         /// 基础地址
@@ -53,7 +53,7 @@ namespace FastWin32.Memory
         /// <summary>
         /// 偏移
         /// </summary>
-        public int[] Offset => _offset;
+        public uint[] Offset => _offset;
 
         /// <summary>
         /// 实例化指针结构
@@ -61,7 +61,7 @@ namespace FastWin32.Memory
         /// <param name="moduleName">模块名</param>
         /// <param name="moduleOffset">模块偏移</param>
         /// <param name="offset">偏移</param>
-        public Pointer(string moduleName, int moduleOffset, params int[] offset)
+        public Pointer(string moduleName, uint moduleOffset, params uint[] offset)
         {
             if (string.IsNullOrEmpty(moduleName))
                 throw new ArgumentOutOfRangeException();
@@ -77,7 +77,7 @@ namespace FastWin32.Memory
         /// </summary>
         /// <param name="baseAddr">基础地址</param>
         /// <param name="offset">偏移</param>
-        public Pointer(IntPtr baseAddr, params int[] offset)
+        public Pointer(IntPtr baseAddr, params uint[] offset)
         {
             _baseAddr = baseAddr;
             _offset = offset;
