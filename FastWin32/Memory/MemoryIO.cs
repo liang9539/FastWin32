@@ -39,7 +39,7 @@ namespace FastWin32.Memory
     /// <summary>
     /// 内存读写
     /// </summary>
-    public static class MemoryIO
+    public static unsafe class MemoryIO
     {
         /// <summary>
         /// 打开进程（内存读写+查询）
@@ -85,7 +85,7 @@ namespace FastWin32.Memory
             if (p._lastAddr == IntPtr.Zero)
                 return false;
             //获取初始地址
-            p._lastAddr += p._moduleOffset;
+            p._lastAddr = (IntPtr)((ulong)p._lastAddr + (ulong)p._moduleOffset);
             if (p._offset == null)
                 return true;
             if (is64)
@@ -320,7 +320,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool ReadBytesInternal(IntPtr processHandle, IntPtr addr, byte[] value) => ReadProcessMemory(processHandle, addr, value, (size_t)value.Length, null);
+        internal static bool ReadBytesInternal(IntPtr processHandle, IntPtr addr, byte[] value) => ReadProcessMemory(processHandle, addr, value, (size_t)value.Length, null);
 
         /// <summary>
         /// 读取字节数组，读取的长度由value的长度决定
@@ -330,7 +330,7 @@ namespace FastWin32.Memory
         /// <param name="value">值</param>
         /// <param name="numOfRead">实际读取的字节数</param>
         /// <returns></returns>
-        internal static unsafe bool ReadBytesInternal(IntPtr processHandle, IntPtr addr, byte[] value, out size_t numOfRead) => ReadProcessMemory(processHandle, addr, value, (size_t)value.Length, out numOfRead);
+        internal static bool ReadBytesInternal(IntPtr processHandle, IntPtr addr, byte[] value, out size_t numOfRead) => ReadProcessMemory(processHandle, addr, value, (size_t)value.Length, out numOfRead);
         #endregion
 
         #region 写入字节数组
@@ -403,7 +403,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool WriteBytesInternal(IntPtr processHandle, IntPtr addr, byte[] value) => WriteProcessMemory(processHandle, addr, value, (size_t)value.Length, null);
+        internal static bool WriteBytesInternal(IntPtr processHandle, IntPtr addr, byte[] value) => WriteProcessMemory(processHandle, addr, value, (size_t)value.Length, null);
 
         /// <summary>
         /// 写入字节数组，写入的长度由value的长度决定
@@ -413,7 +413,7 @@ namespace FastWin32.Memory
         /// <param name="value">值</param>
         /// <param name="numOfWritten">实际写入的字节数</param>
         /// <returns></returns>
-        internal static unsafe bool WriteBytesInternal(IntPtr processHandle, IntPtr addr, byte[] value, out size_t numOfWritten) => WriteProcessMemory(processHandle, addr, value, (size_t)value.Length, out numOfWritten);
+        internal static bool WriteBytesInternal(IntPtr processHandle, IntPtr addr, byte[] value, out size_t numOfWritten) => WriteProcessMemory(processHandle, addr, value, (size_t)value.Length, out numOfWritten);
         #endregion
         #endregion
 
@@ -446,7 +446,7 @@ namespace FastWin32.Memory
         /// <param name="value">值</param>
         /// <param name="mode">读取模式</param>
         /// <returns></returns>
-        internal static unsafe bool ReadPageInternal(IntPtr processHandle, IntPtr addr, out byte[] value, ReadPageMode mode)
+        internal static bool ReadPageInternal(IntPtr processHandle, IntPtr addr, out byte[] value, ReadPageMode mode)
         {
             MEMORY_BASIC_INFORMATION mbi;
 
@@ -498,7 +498,7 @@ namespace FastWin32.Memory
         /// <param name="startAddress">起始地址</param>
         /// <param name="callback">回调方法</param>
         /// <returns></returns>
-        internal static unsafe bool EnumPagesInternal(IntPtr processHandle, IntPtr startAddress, EnumPagesCallback callback)
+        internal static bool EnumPagesInternal(IntPtr processHandle, IntPtr startAddress, EnumPagesCallback callback)
         {
             bool is64;
             IntPtr nextAddress;
@@ -565,7 +565,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool ReadByteInternal(IntPtr processHandle, IntPtr addr, out byte value) => ReadProcessMemory(processHandle, addr, out value, (size_t)1, null);
+        internal static bool ReadByteInternal(IntPtr processHandle, IntPtr addr, out byte value) => ReadProcessMemory(processHandle, addr, out value, (size_t)1, null);
         #endregion
 
         #region 写入字节
@@ -594,7 +594,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool WriteByteInternal(IntPtr processHandle, IntPtr addr, byte value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)1, null);
+        internal static bool WriteByteInternal(IntPtr processHandle, IntPtr addr, byte value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)1, null);
         #endregion
         #endregion
 
@@ -625,7 +625,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool ReadBooleanInternal(IntPtr processHandle, IntPtr addr, out bool value) => ReadProcessMemory(processHandle, addr, out value, (size_t)1, null);
+        internal static bool ReadBooleanInternal(IntPtr processHandle, IntPtr addr, out bool value) => ReadProcessMemory(processHandle, addr, out value, (size_t)1, null);
         #endregion
 
         #region 写入布尔值
@@ -654,7 +654,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool WriteBooleanInternal(IntPtr processHandle, IntPtr addr, bool value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)1, null);
+        internal static bool WriteBooleanInternal(IntPtr processHandle, IntPtr addr, bool value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)1, null);
         #endregion
         #endregion
 
@@ -685,7 +685,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool ReadCharInternal(IntPtr processHandle, IntPtr addr, out char value) => ReadProcessMemory(processHandle, addr, out value, (size_t)2, null);
+        internal static bool ReadCharInternal(IntPtr processHandle, IntPtr addr, out char value) => ReadProcessMemory(processHandle, addr, out value, (size_t)2, null);
         #endregion
 
         #region 写入字符
@@ -714,7 +714,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool WriteCharInternal(IntPtr processHandle, IntPtr addr, char value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)2, null);
+        internal static bool WriteCharInternal(IntPtr processHandle, IntPtr addr, char value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)2, null);
         #endregion
         #endregion
 
@@ -745,7 +745,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool ReadInt16Internal(IntPtr processHandle, IntPtr addr, out short value) => ReadProcessMemory(processHandle, addr, out value, (size_t)2, null);
+        internal static bool ReadInt16Internal(IntPtr processHandle, IntPtr addr, out short value) => ReadProcessMemory(processHandle, addr, out value, (size_t)2, null);
         #endregion
 
         #region 写入短整形
@@ -774,7 +774,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool WriteInt16Internal(IntPtr processHandle, IntPtr addr, short value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)2, null);
+        internal static bool WriteInt16Internal(IntPtr processHandle, IntPtr addr, short value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)2, null);
         #endregion
         #endregion
 
@@ -805,7 +805,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool ReadUInt16Internal(IntPtr processHandle, IntPtr addr, out ushort value) => ReadProcessMemory(processHandle, addr, out value, (size_t)2, null);
+        internal static bool ReadUInt16Internal(IntPtr processHandle, IntPtr addr, out ushort value) => ReadProcessMemory(processHandle, addr, out value, (size_t)2, null);
         #endregion
 
         #region 写入无符号短整形
@@ -834,7 +834,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool WriteUInt16Internal(IntPtr processHandle, IntPtr addr, ushort value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)2, null);
+        internal static bool WriteUInt16Internal(IntPtr processHandle, IntPtr addr, ushort value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)2, null);
         #endregion
         #endregion
 
@@ -865,7 +865,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool ReadInt32Internal(IntPtr processHandle, IntPtr addr, out int value) => ReadProcessMemory(processHandle, addr, out value, (size_t)4, null);
+        internal static bool ReadInt32Internal(IntPtr processHandle, IntPtr addr, out int value) => ReadProcessMemory(processHandle, addr, out value, (size_t)4, null);
         #endregion
 
         #region 写入整形
@@ -894,7 +894,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool WriteInt32Internal(IntPtr processHandle, IntPtr addr, int value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)4, null);
+        internal static bool WriteInt32Internal(IntPtr processHandle, IntPtr addr, int value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)4, null);
         #endregion
         #endregion
 
@@ -925,7 +925,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool ReadUInt32Internal(IntPtr processHandle, IntPtr addr, out uint value) => ReadProcessMemory(processHandle, addr, out value, (size_t)4, null);
+        internal static bool ReadUInt32Internal(IntPtr processHandle, IntPtr addr, out uint value) => ReadProcessMemory(processHandle, addr, out value, (size_t)4, null);
         #endregion
 
         #region 写入无符号整形
@@ -954,7 +954,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool WriteUInt32Internal(IntPtr processHandle, IntPtr addr, uint value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)4, null);
+        internal static bool WriteUInt32Internal(IntPtr processHandle, IntPtr addr, uint value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)4, null);
         #endregion
         #endregion
 
@@ -985,7 +985,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool ReadInt64Internal(IntPtr processHandle, IntPtr addr, out long value) => ReadProcessMemory(processHandle, addr, out value, (size_t)8, null);
+        internal static bool ReadInt64Internal(IntPtr processHandle, IntPtr addr, out long value) => ReadProcessMemory(processHandle, addr, out value, (size_t)8, null);
         #endregion
 
         #region 写入长整形
@@ -1014,7 +1014,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool WriteInt64Internal(IntPtr processHandle, IntPtr addr, long value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)8, null);
+        internal static bool WriteInt64Internal(IntPtr processHandle, IntPtr addr, long value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)8, null);
         #endregion
         #endregion
 
@@ -1045,7 +1045,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool ReadUInt64Internal(IntPtr processHandle, IntPtr addr, out ulong value) => ReadProcessMemory(processHandle, addr, out value, (size_t)8, null);
+        internal static bool ReadUInt64Internal(IntPtr processHandle, IntPtr addr, out ulong value) => ReadProcessMemory(processHandle, addr, out value, (size_t)8, null);
         #endregion
 
         #region 写入无符号长整形
@@ -1074,7 +1074,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool WriteUInt64Internal(IntPtr processHandle, IntPtr addr, ulong value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)8, null);
+        internal static bool WriteUInt64Internal(IntPtr processHandle, IntPtr addr, ulong value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)8, null);
         #endregion
         #endregion
 
@@ -1105,7 +1105,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool ReadFloatInternal(IntPtr processHandle, IntPtr addr, out float value) => ReadProcessMemory(processHandle, addr, out value, (size_t)4, null);
+        internal static bool ReadFloatInternal(IntPtr processHandle, IntPtr addr, out float value) => ReadProcessMemory(processHandle, addr, out value, (size_t)4, null);
         #endregion
 
         #region 写入单精度浮点型
@@ -1134,7 +1134,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool WriteFloatInternal(IntPtr processHandle, IntPtr addr, float value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)4, null);
+        internal static bool WriteFloatInternal(IntPtr processHandle, IntPtr addr, float value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)4, null);
         #endregion
         #endregion
 
@@ -1165,7 +1165,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool ReadDoubleInternal(IntPtr processHandle, IntPtr addr, out double value) => ReadProcessMemory(processHandle, addr, out value, (size_t)8, null);
+        internal static bool ReadDoubleInternal(IntPtr processHandle, IntPtr addr, out double value) => ReadProcessMemory(processHandle, addr, out value, (size_t)8, null);
         #endregion
 
         #region 写入双精度浮点型
@@ -1194,7 +1194,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool WriteDoubleInternal(IntPtr processHandle, IntPtr addr, double value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)8, null);
+        internal static bool WriteDoubleInternal(IntPtr processHandle, IntPtr addr, double value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)8, null);
         #endregion
         #endregion
 
@@ -1225,7 +1225,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool ReadIntPtrInternal(IntPtr processHandle, IntPtr addr, out IntPtr value) => ReadProcessMemory(processHandle, addr, out value, (size_t)IntPtr.Size, null);
+        internal static bool ReadIntPtrInternal(IntPtr processHandle, IntPtr addr, out IntPtr value) => ReadProcessMemory(processHandle, addr, out value, (size_t)IntPtr.Size, null);
         #endregion
 
         #region 写入指针
@@ -1254,7 +1254,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool WriteIntPtrInternal(IntPtr processHandle, IntPtr addr, IntPtr value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)IntPtr.Size, null);
+        internal static bool WriteIntPtrInternal(IntPtr processHandle, IntPtr addr, IntPtr value) => WriteProcessMemory(processHandle, addr, ref value, (size_t)IntPtr.Size, null);
         #endregion
         #endregion
 
@@ -1323,7 +1323,7 @@ namespace FastWin32.Memory
         /// <param name="doubleZero">是否以2个\0结尾（比如LPWSTR以2个字节\0结尾，而LPSTR以1个字节\0结尾）</param>
         /// <param name="encoding">编码</param>
         /// <returns></returns>
-        internal static unsafe bool ReadStringInternal(IntPtr processHandle, IntPtr addr, out string value, int bufferSize, bool doubleZero, Encoding encoding)
+        internal static bool ReadStringInternal(IntPtr processHandle, IntPtr addr, out string value, int bufferSize, bool doubleZero, Encoding encoding)
         {
             if (encoding == null)
                 throw new ArgumentNullException(nameof(encoding) + "不能为null");
@@ -1479,7 +1479,7 @@ namespace FastWin32.Memory
         /// <param name="addr">地址</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        internal static unsafe bool WriteStringInternal(IntPtr processHandle, IntPtr addr, string value)
+        internal static bool WriteStringInternal(IntPtr processHandle, IntPtr addr, string value)
         {
             if (value == null)
                 throw new ArgumentNullException();
@@ -1496,7 +1496,7 @@ namespace FastWin32.Memory
         /// <param name="value">值</param>
         /// <param name="encoding">编码</param>
         /// <returns></returns>
-        internal static unsafe bool WriteStringInternal(IntPtr processHandle, IntPtr addr, string value, Encoding encoding)
+        internal static bool WriteStringInternal(IntPtr processHandle, IntPtr addr, string value, Encoding encoding)
         {
             if (value == null)
                 throw new ArgumentNullException();

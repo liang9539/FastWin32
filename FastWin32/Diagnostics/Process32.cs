@@ -9,7 +9,7 @@ namespace FastWin32.Diagnostics
     /// <summary>
     /// 进程
     /// </summary>
-    public static class Process32
+    public static unsafe class Process32
     {
         /// <summary>
         /// 打开进程（内存读+查询）
@@ -36,7 +36,7 @@ namespace FastWin32.Diagnostics
         /// </summary>
         /// <param name="windowHandle"></param>
         /// <returns></returns>
-        public static unsafe uint GetProcessIdByWindowHandle(IntPtr windowHandle)
+        public static uint GetProcessIdByWindowHandle(IntPtr windowHandle)
         {
             uint processId;
 

@@ -2,6 +2,7 @@
 using System.Text;
 using FastWin32.Memory;
 using static FastWin32.NativeMethods;
+using size_t = System.IntPtr;
 
 namespace FastWin32.Diagnostics
 {
@@ -26,7 +27,7 @@ namespace FastWin32.Diagnostics
     /// <summary>
     /// 模块
     /// </summary>
-    public static class Module32
+    public static unsafe class Module32
     {
         /// <summary>
         /// 打开进程（内存读+查询）
@@ -103,7 +104,7 @@ namespace FastWin32.Diagnostics
         /// <param name="first">是否返回第一个模块句柄</param>
         /// <param name="moduleName">模块名</param>
         /// <returns></returns>
-        internal static unsafe IntPtr GetHandleInternal(IntPtr processHandle, bool first, string moduleName)
+        internal static IntPtr GetHandleInternal(IntPtr processHandle, bool first, string moduleName)
         {
             bool is64;
             bool isXP;
@@ -163,7 +164,7 @@ namespace FastWin32.Diagnostics
         /// <param name="getModuleName">是否向回调方法提供模块名，默认为是</param>
         /// <param name="getFilePath">是否向回调方法提供模块文件路径，默认为否</param>
         /// <returns></returns>
-        public static unsafe bool EnumModules(uint processId, EnumModulesCallback callback, bool getModuleName = true, bool getFilePath = false)
+        public static bool EnumModules(uint processId, EnumModulesCallback callback, bool getModuleName = true, bool getFilePath = false)
         {
             if (callback == null)
                 throw new ArgumentNullException();
@@ -288,7 +289,7 @@ namespace FastWin32.Diagnostics
         /// <param name="moduleName">模块名</param>
         /// <param name="functionName">函数名</param>
         /// <returns></returns>
-        internal static unsafe IntPtr GetProcAddressInternal(IntPtr processHandle, string moduleName, string functionName)
+        internal static IntPtr GetProcAddressInternal(IntPtr processHandle, string moduleName, string functionName)
         {
             IntPtr moduleHandle;
             int ntHeaderOffset;
@@ -317,11 +318,11 @@ namespace FastWin32.Diagnostics
                 if (!MemoryIO.ReadInt32Internal(processHandle, moduleHandle + ntHeaderOffset + 0x78, out iedRVA))
                     return IntPtr.Zero;
             }
-            if (!ReadProcessMemory(processHandle, moduleHandle + iedRVA, &ied, 40, null))
+            if (!ReadProcessMemory(processHandle, moduleHandle + iedRVA, &ied, (size_t)40, null))
                 return IntPtr.Zero;
             nameOffsets = new int[ied.NumberOfNames];
             fixed (void* p = &nameOffsets[0])
-                if (!ReadProcessMemory(processHandle, moduleHandle + (int)ied.AddressOfNames, p, ied.NumberOfNames * 4, null))
+                if (!ReadProcessMemory(processHandle, moduleHandle + (int)ied.AddressOfNames, p, (size_t)(ied.NumberOfNames * 4), null))
                     return IntPtr.Zero;
             for (int i = 0; i < ied.NumberOfNames; i++)
             {
@@ -390,7 +391,7 @@ namespace FastWin32.Diagnostics
         /// <param name="moduleName">模块名</param>
         /// <param name="callback">回调函数</param>
         /// <returns></returns>
-        internal static unsafe bool EnumFunctionsInternal(IntPtr processHandle, string moduleName, EnumFunctionsCallback callback)
+        internal static bool EnumFunctionsInternal(IntPtr processHandle, string moduleName, EnumFunctionsCallback callback)
         {
             IntPtr moduleHandle;
 
@@ -407,7 +408,7 @@ namespace FastWin32.Diagnostics
         /// <param name="moduleHandle">模块句柄</param>
         /// <param name="callback">回调函数</param>
         /// <returns></returns>
-        internal static unsafe bool EnumFunctionsInternal(IntPtr processHandle, IntPtr moduleHandle, EnumFunctionsCallback callback)
+        internal static bool EnumFunctionsInternal(IntPtr processHandle, IntPtr moduleHandle, EnumFunctionsCallback callback)
         {
             int ntHeaderOffset;
             bool is64;
@@ -432,14 +433,14 @@ namespace FastWin32.Diagnostics
                 if (!MemoryIO.ReadInt32Internal(processHandle, moduleHandle + ntHeaderOffset + 0x78, out iedRVA))
                     return false;
             }
-            if (!ReadProcessMemory(processHandle, moduleHandle + iedRVA, &ied, 40, null))
+            if (!ReadProcessMemory(processHandle, moduleHandle + iedRVA, &ied, (size_t)40, null))
                 return false;
             if (ied.NumberOfNames == 0)
                 //无按名称导出函数
                 return true;
             nameOffsets = new int[ied.NumberOfNames];
             fixed (void* p = &nameOffsets[0])
-                if (!ReadProcessMemory(processHandle, moduleHandle + (int)ied.AddressOfNames, p, ied.NumberOfNames * 4, null))
+                if (!ReadProcessMemory(processHandle, moduleHandle + (int)ied.AddressOfNames, p, (size_t)(ied.NumberOfNames * 4), null))
                     return false;
             for (int i = 0; i < ied.NumberOfNames; i++)
             {

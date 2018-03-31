@@ -10,7 +10,7 @@ namespace FastWin32.Diagnostics
     /// <summary>
     /// 注入
     /// </summary>
-    public static class Injector
+    public static unsafe class Injector
     {
         #region Constant
         private const int AsmSize = 0x2000;
@@ -159,7 +159,7 @@ namespace FastWin32.Diagnostics
         /// <param name="returnValue">被调用方法返回的整数值</param>
         /// <param name="wait">是否等待返回值</param>
         /// <returns></returns>
-        internal static unsafe bool InjectManagedInternal(IntPtr processHandle, string assemblyPath, string typeName, string methodName, string argument, out int returnValue, bool wait)
+        internal static bool InjectManagedInternal(IntPtr processHandle, string assemblyPath, string typeName, string methodName, string argument, out int returnValue, bool wait)
         {
             bool isAssembly;
             bool is64;
@@ -241,7 +241,7 @@ namespace FastWin32.Diagnostics
         /// <param name="processHandle">进程句柄</param>
         /// <param name="dllPath">要注入的Dll的路径</param>
         /// <returns></returns>
-        internal static unsafe bool InjectUnmanagedInternal(IntPtr processHandle, string dllPath)
+        internal static bool InjectUnmanagedInternal(IntPtr processHandle, string dllPath)
         {
             bool is64;
             IntPtr pLoadLibrary;
@@ -295,7 +295,7 @@ namespace FastWin32.Diagnostics
         /// <param name="methodName">方法名</param>
         /// <param name="argument">参数（可空，如果非空，长度必须小于2000）</param>
         /// <returns></returns>
-        private static unsafe IntPtr WriteAsm(IntPtr processHandle, string clrVersion, string assemblyPath, string typeName, string methodName, string argument)
+        private static IntPtr WriteAsm(IntPtr processHandle, string clrVersion, string assemblyPath, string typeName, string methodName, string argument)
         {
             bool is64;
             byte[] asm;
@@ -405,7 +405,7 @@ namespace FastWin32.Diagnostics
         /// <param name="p">机器码指针</param>
         /// <param name="pFunction">函数指针</param>
         /// <param name="pCorBindToRuntimeEx">CorBindToRuntimeEx的函数指针</param>
-        private static unsafe void SetAsm32V2(byte* p, int pFunction, int pCorBindToRuntimeEx)
+        private static void SetAsm32V2(byte* p, int pFunction, int pCorBindToRuntimeEx)
         {
             //HRESULT WINAPI LoadCLR2(DWORD *pReturnValue)
             #region {
@@ -591,7 +591,7 @@ namespace FastWin32.Diagnostics
         /// <param name="p">机器码指针</param>
         /// <param name="pFunction">函数指针</param>
         /// <param name="pCLRCreateInstance">CLRCreateInstance的函数指针</param>
-        private static unsafe void SetAsm32V4(byte* p, int pFunction, int pCLRCreateInstance)
+        private static void SetAsm32V4(byte* p, int pFunction, int pCLRCreateInstance)
         {
             //HRESULT WINAPI LoadCLR4(DWORD *pReturnValue)
             #region {
@@ -875,7 +875,7 @@ namespace FastWin32.Diagnostics
         /// <param name="p">机器码指针</param>
         /// <param name="pFunction">函数指针</param>
         /// <param name="pCorBindToRuntimeEx">CorBindToRuntimeEx的函数指针</param>
-        private static unsafe void SetAsm64V2(byte* p, long pFunction, long pCorBindToRuntimeEx)
+        private static void SetAsm64V2(byte* p, long pFunction, long pCorBindToRuntimeEx)
         {
             //HRESULT WINAPI LoadCLR2(DWORD *pReturnValue)
             #region {
@@ -1084,7 +1084,7 @@ namespace FastWin32.Diagnostics
         /// <param name="p">机器码指针</param>
         /// <param name="pFunction">函数指针</param>
         /// <param name="pCLRCreateInstance">CLRCreateInstance的函数指针</param>
-        private static unsafe void SetAsm64V4(byte* p, long pFunction, long pCLRCreateInstance)
+        private static void SetAsm64V4(byte* p, long pFunction, long pCLRCreateInstance)
         {
             //HRESULT WINAPI LoadCLR4(DWORD *pReturnValue)
             #region {

@@ -48,7 +48,7 @@
 //            }
 //        }
 
-//        private unsafe IntPtr KeyboardProc(int nCode, size_t wParam, size_t lParam)
+//        private IntPtr KeyboardProc(int nCode, size_t wParam, size_t lParam)
 //        {
 //            if (nCode < 0)
 //                //如果nCode小于零，则钩子过程必须返回CallNextHookEx返回的值并且不对钩子消息做处理。如果3个事件均未被订阅，直接返回

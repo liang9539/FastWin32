@@ -76,7 +76,7 @@
 //        /// 对指定窗口创建键盘钩子
 //        /// </summary>
 //        /// <param name="windowHandle">窗口句柄</param>
-//        public unsafe KeyboardHook(IntPtr windowHandle)
+//        public KeyboardHook(IntPtr windowHandle)
 //        {
 //            if (!IsWindow(windowHandle))
 //                throw new ArgumentNullException("无效窗口句柄");
@@ -170,7 +170,7 @@
 //        /// <param name="wParam">产生击键消息的密钥的虚拟密钥代码。</param>
 //        /// <param name="lParam">重复计数，扫描码，扩展密钥标志，上下文代码，先前的密钥状态标志和转换状态标志。有关lParam参数的更多信息，请参阅按键消息标志。下表描述了该值的位。</param>
 //        /// <returns></returns>
-//        private unsafe IntPtr LowLevelKeyboardHookProc(int nCode, size_t wParam, size_t lParam)
+//        private IntPtr LowLevelKeyboardHookProc(int nCode, size_t wParam, size_t lParam)
 //        {
 //            if (nCode < 0 || (KeyDown == null && KeyUp == null && KeyPress == null))
 //                //如果nCode小于零，则钩子过程必须返回CallNextHookEx返回的值并且不对钩子消息做处理。如果3个事件均未被订阅，直接返回
@@ -191,7 +191,7 @@
 //        /// <param name="vkCode">虚拟键码</param>
 //        /// <param name="scanCode">扫描码</param>
 //        /// <returns></returns>
-//        private unsafe bool OnKeyEvent(uint messageType, uint vkCode, uint scanCode)
+//        private bool OnKeyEvent(uint messageType, uint vkCode, uint scanCode)
 //        {
 //            bool isBlock;
 //            char keyChar;

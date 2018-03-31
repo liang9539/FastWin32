@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using FastWin32.Memory;
 using static FastWin32.NativeMethods;
+using size_t = System.IntPtr;
 
 namespace FastWin32.Asm
 {
@@ -361,7 +362,7 @@ namespace FastWin32.Asm
 
             IntPtr pAsm;
 
-            pAsm = MemoryManagement.AllocMemoryInternal((uint)bytes.Length, PAGE_EXECUTE_READ);
+            pAsm = MemoryManagement.AllocMemoryInternal((size_t)bytes.Length, PAGE_EXECUTE_READ);
             //分配内存（可执行）
             if (MemoryIO.WriteBytesInternal(CURRENT_PROCESS, pAsm, bytes))
                 return pAsm;

@@ -6,7 +6,7 @@ namespace FastWin32.Windowing
     /// <summary>
     /// 窗口
     /// </summary>
-    public static class Window
+    public static unsafe class Window
     {
         /// <summary>
         /// 遍历窗口回调函数，继续遍历返回true，否则返回false
@@ -57,7 +57,7 @@ namespace FastWin32.Windowing
         /// 将窗口置顶并激活（单次，非永久），非直接调用Win32API SetForegroundWindow，成功率高
         /// </summary>
         /// <param name="windowHandle">窗口句柄</param>
-        public static unsafe void SetForegroundWindow(IntPtr windowHandle)
+        public static void SetForegroundWindow(IntPtr windowHandle)
         {
             if (!IsWindow(windowHandle))
                 throw new ArgumentException("无效窗口句柄");
