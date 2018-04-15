@@ -13,33 +13,27 @@ namespace FastWin32.Diagnostics
     public static unsafe class Injector
     {
         #region Constant
-        private const int AsmSize = 0x2000;
-
-        private const int MachineCodeSize = 0x200;
-
         private const int AssemblyPathOffset = 0x200;
 
         private const int TypeNameOffset = 0x800;
 
         private const int MethodNameOffset = 0x980;
 
-        private const int ArgumentOffset = 0xA00;
+        private const int ReturnValueOffset = 0xA00;
 
-        private const int ReturnValueOffset = 0x1200;
+        private const int CLRVersionOffset = 0xA10;
 
-        private const int CLRVersionOffset = 0x1210;
+        private const int CLSID_CLRMetaHostOffset = 0xA60;
 
-        private const int CLSID_CLRMetaHostOffset = 0x1260;
+        private const int IID_ICLRMetaHostOffset = 0xA70;
 
-        private const int IID_ICLRMetaHostOffset = 0x1270;
+        private const int IID_ICLRRuntimeInfoOffset = 0xA80;
 
-        private const int IID_ICLRRuntimeInfoOffset = 0x1280;
+        private const int CLSID_CLRRuntimeHostOffset = 0xA90;
 
-        private const int CLSID_CLRRuntimeHostOffset = 0x1290;
+        private const int IID_ICLRRuntimeHostOffset = 0xAA0;
 
-        private const int IID_ICLRRuntimeHostOffset = 0x12A0;
-
-        private const int AvailableOffset = 0x12B0;
+        private const int ArgumentOffset = 0xB00;
 
         private readonly static byte[] CLSID_CLRMetaHost = new Guid(0x9280188D, 0x0E8E, 0x4867, 0xB3, 0x0C, 0x7F, 0xA8, 0x38, 0x84, 0xE8, 0xDE).ToByteArray();
 
@@ -88,7 +82,7 @@ namespace FastWin32.Diagnostics
         /// <param name="assemblyPath">要注入程序集的路径</param>
         /// <param name="typeName">类型名（命名空间+类型名，比如NamespaceA.ClassB）</param>
         /// <param name="methodName">方法名（比如MethodC），该方法必须具有此类签名static int MethodName(string)，比如private static int InjectingMain(string argument)</param>
-        /// <param name="argument">参数，长度必须小于1024个字符，可传入null。</param>
+        /// <param name="argument">参数，可传入null。</param>
         /// <returns></returns>
         public static bool InjectManaged(uint processId, string assemblyPath, string typeName, string methodName, string argument)
         {
@@ -100,8 +94,6 @@ namespace FastWin32.Diagnostics
                 throw new ArgumentNullException();
             if (string.IsNullOrEmpty(methodName))
                 throw new ArgumentNullException();
-            if (argument != null && argument.Length >= 1024)
-                throw new ArgumentOutOfRangeException(nameof(argument) + "长度必须小于1024个字符");
 
             SafeNativeHandle processHandle;
             int returnValue;
@@ -120,7 +112,7 @@ namespace FastWin32.Diagnostics
         /// <param name="assemblyPath">要注入程序集的路径</param>
         /// <param name="typeName">类型名（命名空间+类型名，比如NamespaceA.ClassB）</param>
         /// <param name="methodName">方法名（比如MethodC），该方法必须具有此类签名static int MethodName(string)，比如private static int InjectingMain(string argument)</param>
-        /// <param name="argument">参数，长度必须小于1024个字符，可传入null。</param>
+        /// <param name="argument">参数，可传入null。</param>
         /// <param name="returnValue">被调用方法返回的整数值</param>
         /// <returns></returns>
         public static bool InjectManaged(uint processId, string assemblyPath, string typeName, string methodName, string argument, out int returnValue)
@@ -133,8 +125,6 @@ namespace FastWin32.Diagnostics
                 throw new ArgumentNullException();
             if (string.IsNullOrEmpty(methodName))
                 throw new ArgumentNullException();
-            if (argument != null && argument.Length >= 1024)
-                throw new ArgumentOutOfRangeException(nameof(argument) + "长度必须小于1024个字符");
 
             SafeNativeHandle processHandle;
 
@@ -155,7 +145,7 @@ namespace FastWin32.Diagnostics
         /// <param name="assemblyPath">要注入程序集的路径</param>
         /// <param name="typeName">类型名（命名空间+类型名，比如NamespaceA.ClassB）</param>
         /// <param name="methodName">方法名（比如MethodC），该方法必须具有此类签名static int MethodName(string)，比如private static int InjectingMain(string argument)</param>
-        /// <param name="argument">参数，长度必须小于1024个字符，可传入null。</param>
+        /// <param name="argument">参数，可传入null。</param>
         /// <param name="returnValue">被调用方法返回的整数值</param>
         /// <param name="wait">是否等待返回值</param>
         /// <returns></returns>
@@ -306,7 +296,7 @@ namespace FastWin32.Diagnostics
             if (!Process32.Is64BitProcessInternal(processHandle, out is64))
                 return IntPtr.Zero;
             asm = GetAsmCommon(clrVersion, assemblyPath, typeName, methodName, argument);
-            pFunction = MemoryManagement.AllocMemoryExInternal(processHandle, (size_t)AsmSize, PAGE_EXECUTE_READWRITE);
+            pFunction = MemoryManagement.AllocMemoryExInternal(processHandle, (size_t)(0x1000 + (argument == null ? 0 : argument.Length * 2)), PAGE_EXECUTE_READWRITE);
             if (pFunction == IntPtr.Zero)
                 return IntPtr.Zero;
             try
@@ -362,7 +352,7 @@ namespace FastWin32.Diagnostics
             MemoryStream memoryStream;
             byte[] bytes;
 
-            using (memoryStream = new MemoryStream(AsmSize))
+            using (memoryStream = new MemoryStream(0x1000 + (argument == null ? 0 : argument.Length * 2)))
             {
                 bytes = Encoding.Unicode.GetBytes(assemblyPath);
                 memoryStream.Position = AssemblyPathOffset;
@@ -394,7 +384,7 @@ namespace FastWin32.Diagnostics
                 memoryStream.Write(CLSID_CLRRuntimeHost, 0, CLSID_CLRRuntimeHost.Length);
                 memoryStream.Position = IID_ICLRRuntimeHostOffset;
                 memoryStream.Write(IID_ICLRRuntimeHost, 0, IID_ICLRRuntimeHost.Length);
-                memoryStream.SetLength(AsmSize);
+                memoryStream.SetLength(memoryStream.Capacity);
                 return memoryStream.ToArray();
             }
         }

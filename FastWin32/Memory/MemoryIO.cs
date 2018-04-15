@@ -85,7 +85,7 @@ namespace FastWin32.Memory
             if (p._lastAddr == IntPtr.Zero)
                 return false;
             //获取初始地址
-            p._lastAddr = (IntPtr)((ulong)p._lastAddr + (ulong)p._moduleOffset);
+            p._lastAddr = (IntPtr)((ulong)p._lastAddr + p._moduleOffset);
             if (p._offset == null)
                 return true;
             if (is64)
